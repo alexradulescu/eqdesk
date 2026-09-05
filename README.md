@@ -35,7 +35,7 @@ bun run start --port 3100
 - `lib/auth0/`: the mock login adapter, provider, and hook. See its README for the Auth0-shaped API and deliberate mock behavior.
 - `app/devtools/clear-reading-cookie/route.ts`: POST endpoint that clears only the reading cookie.
 
-Article links use full-page navigation so automatic prefetching does not consume the allowance. Authentication and reading history are kept outside the shared CMS cache. There is no HubSpot integration.
+Article links use full-page navigation so automatic prefetching does not consume the allowance. The list sends new anonymous reads directly to `/read`, saving one redirect. Previously read articles, signed-in users, and readers at the limit link directly to `/articles`. Direct article URLs still enforce access. Authentication and reading history are kept outside the shared CMS cache. There is no HubSpot integration.
 
 ## Verify
 

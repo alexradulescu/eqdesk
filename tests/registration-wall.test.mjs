@@ -160,3 +160,44 @@ test("unknown articles and malformed cookies do not break the reader", async () 
     );
   }
 });
+
+test("list links skip the first-read redirect without slowing revisits or signed-in reads", async () => {
+  const visitor = reader();
+  const links = async () =>
+    [
+      ...(await (await visitor.request("/")).text()).matchAll(
+        /href="((?:\/read|\/articles)\/[^"?]+)"/g,
+      ),
+    ].map((match) => match[1]);
+  const initialLinks = await links();
+  assert.equal(initialLinks.length, 10);
+  assert.ok(initialLinks.every((href) => href.startsWith("/read/")));
+  assert.equal(
+    visitor.cookies.has("eqdesk_read_articles"),
+    false,
+    "rendering the list must not consume a read",
+  );
+  const firstNavigation = await visitor.request(initialLinks[0]);
+  assert.equal(firstNavigation.status, 303);
+  const canonical = firstNavigation.headers.get("location");
+  const article = await visitor.request(canonical);
+  assert.equal(article.status, 200);
+  assert.equal(hasBody(await article.text()), true);
+  assert.ok(
+    (await links()).includes(canonical),
+    "read articles link directly to their canonical page",
+  );
+  assert.ok((await links()).includes(`/read/${slugs[1]}`));
+  for (const slug of slugs.slice(1, 3)) await visitor.request(`/read/${slug}`);
+  assert.ok(
+    (await links()).every((href) => href.startsWith("/articles/")),
+    "at the limit all links go directly to the article or wall",
+  );
+  await visitor.request("/devtools/clear-reading-cookie", { method: "POST" });
+  assert.ok((await links()).every((href) => href.startsWith("/read/")));
+  await visitor.request("/auth/callback?user=auth0%7Calison");
+  assert.ok(
+    (await links()).every((href) => href.startsWith("/articles/")),
+    "signed-in users never need the read redirect",
+  );
+});

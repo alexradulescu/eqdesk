@@ -79,9 +79,9 @@ button {
   font-size: 14px;
   font-weight: 600;
 }
-.login-button:disabled {
-  cursor: not-allowed;
-  color: var(--muted);
+.login-button:hover {
+  background: var(--brand);
+  border-color: var(--brand);
 }
 .news-page {
   padding-top: 48px;
@@ -277,4 +277,75 @@ button {
   .article-heading h1 {
     letter-spacing: -1px;
   }
+}
+
+.account-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.account-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+.login-page {
+  flex: 1;
+  padding-top: 64px;
+  padding-bottom: 64px;
+}
+.login-card {
+  max-width: 420px;
+  margin-inline: auto;
+}
+.login-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  margin-bottom: 16px;
+  color: var(--muted);
+}
+.login-card h1 {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -1.2px;
+  line-height: 1.15;
+}
+.login-description {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin-top: 16px;
+}
+.user-options {
+  display: grid;
+  gap: 12px;
+  margin-block: 32px;
+}
+.user-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  text-align: left;
+  font-weight: 600;
+  cursor: pointer;
+  background: white;
+}
+.user-option:hover {
+  border-color: #b18a00;
+  background: #fffdf1;
+}
+.user-initial {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 3px;
+  background: var(--brand);
+}
+.user-arrow {
+  margin-left: auto;
 }

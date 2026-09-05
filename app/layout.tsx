@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
+import { Suspense } from "react";
+import { Account } from "@/components/account";
 import "./globals.css";
 
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -26,15 +28,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 .
               </span>
             </Link>
-            {/* Wave 2 replaces this placeholder with the mock Auth0 login. */}
-            <button
-              type="button"
-              className="login-button"
-              disabled
-              title="Login will be available in the next implementation wave"
-            >
-              Log in
-            </button>
+            <Suspense fallback={<span className="login-button">Account…</span>}>
+              <Account />
+            </Suspense>
           </div>
         </header>
         {children}

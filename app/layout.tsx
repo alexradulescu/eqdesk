@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Account } from "@/components/account";
+import { Devtools } from "@/components/devtools";
 import "./globals.css";
 
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <span>EQDesk</span>
           <span>Demo edition · All stories are fictional</span>
         </footer>
+        <Devtools />
       </body>
     </html>
   );

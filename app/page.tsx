@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import { ArticleByline } from "@/components/article-byline";
 import { getArticles } from "@/lib/sanity/client";
 
@@ -14,11 +13,11 @@ export default async function Home() {
       <ul className="article-list">
         {articles.map((article, index) => (
           <li key={article._id} className="article-row">
-            <Link
+            <a
               className="article-image-link"
               href={`/articles/${article.slug.current}`}
               tabIndex={-1}
-              aria-hidden="true"
+              aria-label={article.title}
             >
               <Image
                 src={article.image.url}
@@ -28,12 +27,12 @@ export default async function Home() {
                 sizes="(max-width: 580px) calc(100vw - 24px), 240px"
                 preload={index === 0}
               />
-            </Link>
+            </a>
             <div className="article-summary">
               <h2>
-                <Link href={`/articles/${article.slug.current}`}>
+                <a href={`/articles/${article.slug.current}`}>
                   {article.title}
-                </Link>
+                </a>
               </h2>
               <ArticleByline
                 author={article.author.name}

@@ -349,3 +349,63 @@ button {
 .user-arrow {
   margin-left: auto;
 }
+
+.reading-notice {
+  background: #fff8d3;
+  border-left: 3px solid var(--brand);
+  border-radius: 3px;
+  padding: 16px 20px;
+  margin-bottom: 28px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.registration-wall {
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--brand);
+  border-radius: 3px;
+  padding: 32px;
+  margin-bottom: 28px;
+}
+.registration-wall h2 {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.8px;
+  line-height: 1.2;
+}
+.registration-wall > p:not(.login-eyebrow) {
+  font-size: 16px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-block: 16px 24px;
+}
+.brand-button {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 3px;
+  background: var(--brand);
+  font-size: 14px;
+  font-weight: 600;
+}
+.brand-button:hover {
+  background: #efc800;
+}
+.devtools {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-block: 16px;
+  border-top: 1px dashed var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+.devtools button {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 7px 12px;
+  background: white;
+  cursor: pointer;
+  color: var(--foreground);
+}
+.devtools button:hover {
+  background: #f5f5f5;
+}

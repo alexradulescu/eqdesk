@@ -14,3 +14,13 @@ export async function getArticle(slug: string) {
   cacheLife({ stale: 60, revalidate: 60, expire: 120 });
   return mockArticles.find((article) => article.slug.current === slug) ?? null;
 }
+
+export async function getSubscriptionBenefits() {
+  "use cache";
+  cacheLife({ stale: 60, revalidate: 60, expire: 120 });
+  return Array.from({ length: 5 }, (_, index) => ({
+    title: `Benefit ${index + 1}`,
+    description:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+  }));
+}

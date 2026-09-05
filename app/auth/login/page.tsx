@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getReturnTo } from "@/lib/auth0/return-to";
 import { mockUsers } from "@/lib/auth0/users";
 
@@ -9,6 +8,11 @@ export default async function LoginPage({
   searchParams,
 }: PageProps<"/auth/login">) {
   const returnTo = getReturnTo((await searchParams).returnTo);
+  const cancelTo = returnTo.startsWith("/demo/revenuecat/checkout?")
+    ? getReturnTo(
+        new URL(returnTo, "http://eqdesk.local").searchParams.get("returnTo"),
+      )
+    : returnTo;
   return (
     <main id="main-content" className="container login-page">
       <div className="login-card">
@@ -37,9 +41,9 @@ export default async function LoginPage({
             </button>
           ))}
         </form>
-        <Link className="back-link" href={returnTo}>
+        <a className="back-link" href={cancelTo}>
           ← Continue without logging in
-        </Link>
+        </a>
       </div>
     </main>
   );

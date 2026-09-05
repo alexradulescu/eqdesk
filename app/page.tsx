@@ -1,16 +1,16 @@
 import Image from "next/image";
 import { ArticleByline } from "@/components/article-byline";
-import { auth0 } from "@/lib/auth0/server";
-import { FREE_ARTICLE_LIMIT, getReadArticles } from "@/lib/reading-meter";
+import { getReaderAccess } from "@/lib/article-access";
+import { FREE_ARTICLE_LIMIT } from "@/lib/reading-meter";
 import { getArticles } from "@/lib/sanity/client";
 
 export default async function Home() {
-  const [articles, session] = await Promise.all([
+  const [articles, access] = await Promise.all([
     getArticles(),
-    auth0.getSession(),
+    getReaderAccess(),
   ]);
-  const readArticles = session ? [] : await getReadArticles();
-  const hasFreeReads = !session && readArticles.length < FREE_ARTICLE_LIMIT;
+  const { readArticles, unlimited } = access;
+  const hasFreeReads = !unlimited && readArticles.length < FREE_ARTICLE_LIMIT;
   return (
     <main id="main-content" className="container news-page">
       <div className="page-heading">

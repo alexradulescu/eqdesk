@@ -4,8 +4,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArticleBody } from "@/components/article-body";
 import { ArticleByline } from "@/components/article-byline";
-import { auth0 } from "@/lib/auth0/server";
-import { FREE_ARTICLE_LIMIT, getReadArticles } from "@/lib/reading-meter";
+import { getReaderAccess } from "@/lib/article-access";
+import { FREE_ARTICLE_LIMIT } from "@/lib/reading-meter";
 import { getArticle, getArticles } from "@/lib/sanity/client";
 
 export async function generateStaticParams() {
@@ -27,13 +27,12 @@ export default async function ArticlePage({
   const article = await getArticle((await params).slug);
   if (!article) notFound();
 
-  const session = await auth0.getSession();
-  const readArticles = session ? [] : await getReadArticles();
+  const { unlimited, readArticles, experience } = await getReaderAccess();
   const alreadyRead = readArticles.includes(article.slug.current);
-  if (!session && !alreadyRead && readArticles.length < FREE_ARTICLE_LIMIT) {
+  if (!unlimited && !alreadyRead && readArticles.length < FREE_ARTICLE_LIMIT) {
     redirect(`/read/${article.slug.current}`);
   }
-  const canRead = Boolean(session) || alreadyRead;
+  const canRead = unlimited || alreadyRead;
 
   return (
     <main id="main-content" className="container article-page">
@@ -57,7 +56,7 @@ export default async function ArticlePage({
           sizes="(max-width: 900px) calc(100vw - 24px), 876px"
           preload
         />
-        {!session &&
+        {!unlimited &&
           (canRead ? (
             <div className="reading-notice">
               You're reading {readArticles.length}/{FREE_ARTICLE_LIMIT} free
@@ -69,16 +68,23 @@ export default async function ArticlePage({
               aria-labelledby="registration-heading"
             >
               <p className="login-eyebrow">YOUR FREE ARTICLES, READ</p>
-              <h2 id="registration-heading">Log in to keep reading.</h2>
+              <h2 id="registration-heading">
+                {experience === "revenuecat"
+                  ? "Subscribe to keep reading."
+                  : "Log in to keep reading."}
+              </h2>
               <p>
-                You've read your {FREE_ARTICLE_LIMIT} free articles. Log in for
-                full access to every story.
+                You've read your {FREE_ARTICLE_LIMIT} free articles.{" "}
+                {experience === "revenuecat" ? "Subscribe" : "Log in"} for full
+                access to every story.
               </p>
               <a
                 className="brand-button"
-                href={`/auth/login?returnTo=${encodeURIComponent(`/articles/${article.slug.current}`)}`}
+                href={`${experience === "revenuecat" ? "/subscribe" : "/auth/login"}?returnTo=${encodeURIComponent(`/articles/${article.slug.current}`)}`}
               >
-                Log in to read
+                {experience === "revenuecat"
+                  ? "View subscription benefits"
+                  : "Log in to read"}
               </a>
             </section>
           ))}

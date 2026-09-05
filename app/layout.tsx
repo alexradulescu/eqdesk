@@ -39,7 +39,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <span>EQDesk</span>
           <span>Demo edition · All stories are fictional</span>
         </footer>
-        <Devtools />
+        <Suspense fallback={null}>
+          <Devtools />
+        </Suspense>
       </body>
     </html>
   );

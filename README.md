@@ -25,6 +25,46 @@ bun run start --port 3100
 - **Clear reading cookie** resets the allowance and returns to the list. It does not log the user out.
 - Reading history and login use separate HTTP-only browser-session cookies. The demo requires cookies; it is a browser-local meter, not a durable account ledger.
 
+## Quality checks
+
+Run `bun run check` locally or in CI after `bun install --frozen-lockfile`.
+It runs Biome, the metrics gate, and the gate's regression tests. `bun run lint`
+also enforces all four limits; `bun run metrics` prints the numerical report.
+
+| Metric | Scope | Passing value |
+| --- | --- | --- |
+| Cognitive complexity | Each function, using Biome 2.4.2 | ≤ 21 |
+| Cyclomatic complexity | Each function, using `@makerx/complexity-verifier` 1.0.0 | ≤ 21 |
+| Halstead difficulty | Each function, using the same analyzer | < 80 |
+| Physical lines | Each source/configuration file, including blanks and comments | ≤ 499 |
+
+The metrics gate scans Git-tracked and untracked, non-ignored JS/TS/JSX/TSX
+(including module variants), CSS, and JSON files. Tests and scripts are included.
+Dependencies, bundled `.agents`/`.claude` skills, `.next`, `dist`, `build`, `out`, `coverage`, `public`, `docs`, and
+TypeScript declaration files are excluded. A final newline does not add a line.
+CSS and JSON receive only the line-count check. Functionless modules have no
+function metrics; zero in the report means no measured functions.
+
+The analyzer and its TypeScript parser are pinned by `bun.lock`; installation
+must use the frozen lockfile in CI. Parsing failures fail the metrics command.
+Functions include declarations, expressions, arrows, methods, constructors, and
+accessors. Following this analyzer's convention, enclosing functions include
+nested-function syntax; nested functions are also checked individually.
+
+Cyclomatic complexity starts at 1 and adds branches for `if`, loops, `case`,
+`catch`, ternaries, and `&&`, `||`, `??`. Halstead difficulty is
+`(distinct operators / 2) × (total operands / distinct operands)`, or zero when
+there are no operands. The pinned analyzer counts identifiers, numeric literals,
+and string literals as operands. It counts its recognized expression and control
+operators; JSX tags/attributes contribute identifier and string operands, JSX
+text and markup punctuation do not, and embedded expressions are traversed.
+These are analyzer-specific conventions, not interchangeable scores from other tools.
+
+Failures name the file, function location, metric, and required limit. Keep
+component boundaries unchanged until a responsibility or measured hotspot
+justifies extraction; do not compress lines or add memoization to game the gate.
+
+
 ## Code map
 
 - `lib/sanity/mock-data.ts`: article fixtures with Sanity-style documents and Portable Text blocks. Photos are local mock assets originally sourced from Unsplash.

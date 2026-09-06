@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "biome check",
+    "lint": "biome check && bun run metrics",
+    "metrics": "bun scripts/check-metrics.mjs",
+    "test:metrics": "bun test scripts/metrics.test.mjs",
+    "check": "bun run lint && bun run test:metrics",
     "format": "biome format --write"
   },
   "dependencies": {
@@ -16,6 +19,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.2",
+    "@makerx/complexity-verifier": "1.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

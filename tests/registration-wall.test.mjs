@@ -201,3 +201,133 @@ test("list links skip the first-read redirect without slowing revisits or signed
     "signed-in users never need the read redirect",
   );
 });
+
+test("Piano rollout meters signed-in readers and preserves purchased access across rollback", async () => {
+  const visitor = reader();
+  const form = (fields) => ({
+    method: "POST",
+    body: new URLSearchParams(fields),
+  });
+  const article = `/articles/${slugs[3]}`;
+  await visitor.request("/auth/callback?user=auth0%7Calison");
+  await visitor.request("/demo/piano/reset", { method: "POST" });
+  try {
+    assert.equal(
+      hasBody(await (await visitor.request(article)).text()),
+      true,
+      "legacy signed-in access unchanged",
+    );
+    await visitor.request(
+      "/devtools/access-experience",
+      form({ experience: "piano" }),
+    );
+    for (const slug of slugs.slice(0, 3))
+      await visitor.request(`/read/${slug}`);
+    const history = visitor.cookies.get("eqdesk_read_articles");
+    for (const suffix of ["", "?_rsc"]) {
+      const text = await (
+        await visitor.request(
+          article + suffix,
+          suffix ? { headers: { RSC: "1" } } : {},
+        )
+      ).text();
+      assert.ok(text.includes("Subscribe to keep reading."));
+      assert.equal(
+        text.includes("The first screen of a digital wallet"),
+        false,
+      );
+    }
+    const benefits = await (
+      await visitor.request(
+        `/subscribe?returnTo=${encodeURIComponent(article)}`,
+      )
+    ).text();
+    for (let number = 1; number <= 5; number++)
+      assert.ok(benefits.includes(`Benefit ${number}`));
+    const checkout = await (
+      await visitor.request(
+        `/subscribe?returnTo=${encodeURIComponent(article)}`,
+      )
+    ).text();
+    assert.ok(checkout.includes("Simulate successful payment"));
+    assert.equal(
+      hasBody(await (await visitor.request(`${article}?success=true`)).text()),
+      false,
+      "success query must not grant access",
+    );
+    const purchased = await visitor.request(
+      "/demo/piano/purchase",
+      form({ returnTo: article, user: "auth0|john" }),
+    );
+    assert.equal(purchased.status, 303);
+    assert.equal(purchased.headers.get("location"), article);
+    assert.equal(hasBody(await (await visitor.request(article)).text()), true);
+    assert.equal(visitor.cookies.get("eqdesk_read_articles"), history);
+    await visitor.request("/auth/callback?user=auth0%7Cjohn");
+    await visitor.request("/demo/piano/reset", { method: "POST" });
+    assert.equal(
+      hasBody(await (await visitor.request(article)).text()),
+      false,
+      "Alison purchase must not grant John access",
+    );
+    await visitor.request("/auth/callback?user=auth0%7Calison");
+    for (const experience of ["legacy_regwall", "piano"]) {
+      await visitor.request(
+        "/devtools/access-experience",
+        form({ experience }),
+      );
+      assert.equal(
+        hasBody(await (await visitor.request(article)).text()),
+        true,
+      );
+    }
+    await visitor.request("/devtools/clear-reading-cookie", { method: "POST" });
+    assert.equal(
+      hasBody(await (await visitor.request(article)).text()),
+      true,
+      "meter reset must preserve paid access",
+    );
+    await visitor.request("/demo/piano/reset", { method: "POST" });
+    assert.equal(
+      hasBody(await (await visitor.request(article)).text()),
+      false,
+      "reset demo subscription removes entitlement",
+    );
+    await visitor.request(
+      "/devtools/access-experience",
+      form({ experience: "legacy_regwall" }),
+    );
+    assert.equal(
+      (
+        await visitor.request(
+          "/demo/piano/purchase",
+          form({ returnTo: article }),
+        )
+      ).status,
+      409,
+    );
+    await visitor.request("/auth/logout");
+    assert.equal(
+      (
+        await visitor.request(
+          "/demo/piano/purchase",
+          form({ returnTo: article }),
+        )
+      ).status,
+      401,
+    );
+  } finally {
+    await visitor.request("/auth/callback?user=auth0%7Calison");
+    await visitor.request("/demo/piano/reset", { method: "POST" });
+  }
+});
+
+test("anonymous checkout login can be cancelled back to the article", async () => {
+  const visitor = reader();
+  const article = `/articles/${slugs[0]}`;
+  const checkout = `/subscribe?returnTo=${encodeURIComponent(article)}`;
+  const login = `/auth/login?returnTo=${encodeURIComponent(checkout)}`;
+  const html = await (await visitor.request(login)).text();
+  assert.ok(html.includes(`class="back-link" href="${article}"`));
+  assert.ok(html.includes("Continue without logging in"));
+});

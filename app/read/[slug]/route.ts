@@ -1,10 +1,6 @@
 import { cookies } from "next/headers";
-import { auth0 } from "@/lib/auth0/server";
-import {
-  FREE_ARTICLE_LIMIT,
-  getReadArticles,
-  READING_COOKIE,
-} from "@/lib/reading-meter";
+import { getReaderAccess } from "@/lib/article-access";
+import { FREE_ARTICLE_LIMIT, READING_COOKIE } from "@/lib/reading-meter";
 import { getArticle } from "@/lib/sanity/client";
 
 // Cookies must be written before rendering starts, so new reads pass through this route.
@@ -15,9 +11,8 @@ export async function GET(
   const { slug } = await params;
   if (!(await getArticle(slug)))
     return new Response("Article not found", { status: 404 });
-  const session = await auth0.getSession();
-  if (!session) {
-    const readArticles = await getReadArticles();
+  const { unlimited, readArticles } = await getReaderAccess();
+  if (!unlimited) {
     if (
       !readArticles.includes(slug) &&
       readArticles.length < FREE_ARTICLE_LIMIT

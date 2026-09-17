@@ -2,16 +2,17 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Account } from "@/components/account";
-import { Devtools } from "@/components/devtools";
+import { PriceAside } from "@/components/price-aside";
 import "./globals.css";
 
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: { default: "EQDesk — Latest stories", template: "%s | EQDesk" },
-  description:
-    "A minimal news demo exploring digital assets, finance, and technology.",
+  title: {
+    default: "CryptoWire — Latest stories",
+    template: "%s | CryptoWire",
+  },
+  description: "Fictional crypto news and simulated market prices.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -23,23 +24,26 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <header className="site-header">
           <div className="container top-bar">
-            <Link href="/" className="logotype" aria-label="EQDesk home">
-              <span>EQ</span>Desk
-              <span className="brand-dot" aria-hidden="true">
-                .
-              </span>
+            <Link href="/" className="logotype" aria-label="CryptoWire home">
+              Crypto<span>Wire</span>
+              <span className="brand-dot">.</span>
             </Link>
-            <Suspense fallback={<span className="login-button">Account…</span>}>
-              <Account />
-            </Suspense>
+            <span className="edition">THE DEMO EDITION</span>
           </div>
         </header>
-        {children}
+        <div className="container news-layout">
+          <main id="main-content">{children}</main>
+          <aside className="prices" aria-labelledby="prices-heading">
+            <h2 id="prices-heading">Prices</h2>
+            <Suspense fallback={<output>Loading prices…</output>}>
+              <PriceAside />
+            </Suspense>
+          </aside>
+        </div>
         <footer className="container site-footer">
-          <span>EQDesk</span>
-          <span>Demo edition · All stories are fictional</span>
+          <span>CryptoWire</span>
+          <span>All stories and prices are fictional.</span>
         </footer>
-        <Devtools />
       </body>
     </html>
   );

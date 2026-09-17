@@ -1,59 +1,71 @@
 import Image from "next/image";
-import { ArticleByline } from "@/components/article-byline";
-import { auth0 } from "@/lib/auth0/server";
-import { FREE_ARTICLE_LIMIT, getReadArticles } from "@/lib/reading-meter";
-import { getArticles } from "@/lib/sanity/client";
+import Link from "next/link";
+import { ArticleMeta } from "@/components/article-meta";
+import { fetchApi } from "@/lib/cryptowire/client";
+import { isPublished } from "@/lib/cryptowire/content";
+import type { ArticleSummary } from "@/lib/cryptowire/types";
 
-export default async function Home() {
-  const [articles, session] = await Promise.all([
-    getArticles(),
-    auth0.getSession(),
-  ]);
-  const readArticles = session ? [] : await getReadArticles();
-  const hasFreeReads = !session && readArticles.length < FREE_ARTICLE_LIMIT;
+export default async function Home({ searchParams }: PageProps<"/">) {
+  const query = await searchParams;
+  const requestedPage = Number(query.page ?? 1);
+  const page =
+    Number.isSafeInteger(requestedPage) && requestedPage > 0
+      ? requestedPage
+      : 1;
+  const params = new URLSearchParams({
+    limit: "7",
+    offset: String((page - 1) * 6),
+  });
+  if (typeof query.latency === "string") params.set("latency", query.latency);
+  if (query.fail === "1") params.set("fail", "1");
+  const articles =
+    (await fetchApi<ArticleSummary[]>(`/articles?${params}`)) ?? [];
+  const published = articles
+    .slice(0, 6)
+    .filter((article) => isPublished(article));
+
   return (
-    <main id="main-content" className="container news-page">
+    <>
       <div className="page-heading">
         <h1>Latest stories</h1>
-        <span>THE EQDESK EDIT</span>
+        <span>NEWS & PERSPECTIVES</span>
       </div>
+      {published.length === 0 && <p>No published stories on this page.</p>}
       <ul className="article-list">
-        {articles.map((article, index) => {
-          const slug = article.slug.current;
-          const href =
-            hasFreeReads && !readArticles.includes(slug)
-              ? `/read/${slug}`
-              : `/articles/${slug}`;
-          return (
-            <li key={article._id} className="article-row">
-              <a
-                className="article-image-link"
-                href={href}
-                tabIndex={-1}
-                aria-label={article.title}
-              >
+        {published.map((article, index) => (
+          <li key={article.id}>
+            <Link href={`/articles/${article.id}`} className="article-row">
+              {article.image ? (
                 <Image
                   src={article.image.url}
                   alt=""
-                  width={360}
-                  height={240}
-                  sizes="(max-width: 580px) calc(100vw - 24px), 240px"
+                  width={240}
+                  height={160}
+                  sizes="(max-width: 600px) 100px, 180px"
                   preload={index === 0}
                 />
-              </a>
-              <div className="article-summary">
-                <h2>
-                  <a href={href}>{article.title}</a>
-                </h2>
-                <ArticleByline
-                  author={article.author.name}
+              ) : (
+                <div className="image-placeholder" aria-hidden="true">
+                  CW.
+                </div>
+              )}
+              <div>
+                <h2>{article.title}</h2>
+                <ArticleMeta
+                  category={article.category}
                   publishedAt={article.publishedAt}
                 />
               </div>
-            </li>
-          );
-        })}
+            </Link>
+          </li>
+        ))}
       </ul>
-    </main>
+      <nav className="pagination" aria-label="Article pages">
+        {page > 1 && <Link href={`/?page=${page - 1}`}>← Newer stories</Link>}
+        {articles.length > 6 && (
+          <Link href={`/?page=${page + 1}`}>Older stories →</Link>
+        )}
+      </nav>
+    </>
   );
 }

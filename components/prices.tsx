@@ -3,7 +3,22 @@
 import { useEffect, useState } from "react";
 import type { Price } from "@/lib/cryptowire/types";
 
-export function Prices({ initialPrices }: { initialPrices: Price[] }) {
+async function fetchPrices(url: string, signal: AbortSignal): Promise<Price[]> {
+  const response = await fetch(url, {
+    cache: "no-store",
+    signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]),
+  });
+  if (!response.ok) throw new Error("Prices unavailable");
+  return response.json();
+}
+
+export function Prices({
+  initialPrices,
+  url,
+}: {
+  initialPrices: Price[];
+  url: string;
+}) {
   const [prices, setPrices] = useState(initialPrices);
   const [failed, setFailed] = useState(initialPrices.length === 0);
 
@@ -14,31 +29,22 @@ export function Prices({ initialPrices }: { initialPrices: Price[] }) {
       if (pending) return;
       pending = true;
       try {
-        const response = await fetch("/api/prices", {
-          cache: "no-store",
-          signal: AbortSignal.any([
-            controller.signal,
-            AbortSignal.timeout(10000),
-          ]),
-        });
-        if (!response.ok) throw new Error("Prices unavailable");
-        const nextPrices: Price[] = await response.json();
+        const nextPrices = await fetchPrices(url, controller.signal);
         if (!controller.signal.aborted) {
           setPrices(nextPrices);
           setFailed(false);
         }
       } catch {
         if (!controller.signal.aborted) setFailed(true);
-      } finally {
-        pending = false;
       }
+      pending = false;
     }
     const timer = setInterval(refresh, 5000);
     return () => {
       clearInterval(timer);
       controller.abort();
     };
-  }, []);
+  }, [url]);
 
   return (
     <>

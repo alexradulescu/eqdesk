@@ -9,8 +9,9 @@
     "lint": "biome check && bun run metrics",
     "metrics": "bun scripts/check-metrics.mjs",
     "test:metrics": "bun test scripts/metrics.test.mjs",
-    "check": "bun run lint && bun run test:metrics",
-    "format": "biome format --write"
+    "check": "bun run lint && bun run test",
+    "format": "biome format --write",
+    "test": "bun test scripts/metrics.test.mjs tests/cryptowire.test.ts"
   },
   "dependencies": {
     "next": "16.3.4",
@@ -22,6 +23,7 @@
     "@biomejs/biome": "2.4.2",
     "@makerx/complexity-verifier": "1.0.0",
     "@tailwindcss/postcss": "^4",
+    "@types/bun": "^1.4.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

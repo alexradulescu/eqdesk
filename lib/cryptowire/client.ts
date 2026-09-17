@@ -1,7 +1,8 @@
 import "server-only";
 
 // Set this to the public mock API URL when running the API separately.
-const apiUrl = process.env.CRYPTOWIRE_API_URL ?? "http://localhost:3000";
+export const apiOrigin = process.env.CRYPTOWIRE_API_URL ?? "";
+const apiUrl = apiOrigin || "http://localhost:3000";
 
 export async function fetchApi<T>(path: string): Promise<T | null> {
   const response = await fetch(`${apiUrl}/api${path}`, {

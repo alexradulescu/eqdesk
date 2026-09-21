@@ -1,6 +1,6 @@
 # 09 — Server-render prices beside both pages
 
-**Outcome:** five raw prices appear in a right-hand aside on the list and article pages. They are fetched once per layout render, with no browser polling yet.
+**Outcome:** six raw prices appear in a right-hand aside on the list and article pages. They are fetched once per layout render, with no browser polling yet.
 
 ## Show me
 
@@ -94,7 +94,7 @@ Append CSS:
 
 ## Check
 
-All five assets appear on `/` and on an article. View page source: the prices are present in the server response. Click between articles: one layout owns the aside, rather than each page rendering its own copy.
+All six assets appear on `/` and on an article. View page source: the prices are present in the server response. Click between articles: one layout owns the aside, rather than each page rendering its own copy.
 
 **Talk it through:** why put the fetch in `PriceAside` rather than awaiting it at the top of `RootLayout` before returning any UI?
 

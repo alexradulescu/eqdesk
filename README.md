@@ -28,9 +28,9 @@ CRYPTOWIRE_API_URL=http://localhost:3100 bun run start --port 3100
 - `app/alex/articles/[slug]/page.tsx` fetches a full article and rejects unknown or future-dated stories.
 - `components/article-body.tsx` sanitizes the HTML body with an explicit tag and attribute allowlist before rendering. Title, date, category, and hero image stay separate.
 - `components/price-aside.tsx` fetches the initial prices on the server. `components/prices.tsx` polls every five seconds, skips overlapping requests, aborts on unmount, and keeps last known values after a failure.
-- `lib/cryptowire/articles.ts` contains the fixtures. `lib/cryptowire/prices.ts` calculates quotes from five-second time buckets. Quotes stay within 0.1% of their base values; no background timer or database is needed.
+- `lib/cryptowire/articles.ts` contains the fixtures. `lib/cryptowire/prices.ts` calculates quotes from five-second time buckets. Quotes stay within 0.1% of their base values (0.01% for USDC); no background timer or database is needed.
 
-Requests use `no-store`: editorial changes appear on the next page request. The layout streams loading states while the API responds. On mobile, prices move below the article/list. Prices use each asset's declared `decimals` (including four for ETH and six for DOGE).
+Requests use `no-store`: editorial changes appear on the next page request. The layout streams loading states while the API responds. On mobile, prices move below the article/list. Prices use each asset's declared `decimals` (BTC/ETH/SOL: 2; XRP/USDC: 4; DOGE: 5).
 
 ## Mock API
 
@@ -40,7 +40,7 @@ The API reflects the state of the world. Handle what it gives you.
 | --- | --- |
 | `GET /api/articles?limit=12&offset=0` | Article summaries, without `body` |
 | `GET /api/articles/:id` | Full article, or 404 |
-| `GET /api/prices` | Five simulated assets |
+| `GET /api/prices` | Six simulated assets, including USDC |
 
 `limit` accepts integers from 1 to 100; `offset` accepts non-negative integers. Every endpoint accepts `?latency=3000` (0–10000 ms) and `?fail=1` (HTTP 500). Invalid numeric parameters return 400. Responses include open CORS and `Cache-Control: no-store`.
 
@@ -65,13 +65,15 @@ Price shape:
 {
   "symbol": "ETH",
   "name": "Ethereum",
-  "price": "3042.55501200",
-  "decimals": 4,
+  "price": "2635.56000000",
+  "decimals": 2,
   "change24h": "0.87"
 }
 ```
 
-Prices and percentage changes are strings. `decimals` controls price formatting; `change24h` is a percentage, not a fraction. Prices are calculated at request time and change in five-second buckets.
+Starting USD prices are illustrative values from a [CoinGecko market snapshot](https://www.coingecko.com/en/all-cryptocurrencies): BTC 81,106.25; ETH 2,635.56; SOL 110.39; XRP 1.41; DOGE 0.08749; USDC 0.9997. These remain simulated fixtures, not a live feed. USDC uses smaller movements around its near-$1 starting value.
+
+Prices and percentage changes are strings. `decimals` controls USD display precision, not token transfer precision; `change24h` is a percentage, not a fraction. Prices are calculated at request time and change in five-second buckets.
 
 This is a local exercise implementation. Public hosting, hosted rate limiting, a second cohort fixture set, the bonus categories endpoint, and Session 2 are not included.
 
@@ -88,7 +90,7 @@ bunx tsc --noEmit
 bun run build
 ```
 
-`check` runs Biome, the source metrics gate, and 15 tests covering the gate, API contracts, publication filtering, HTML sanitization, and price drift. The gate requires fewer than 500 lines per source/configuration file, cyclomatic complexity below 22, cognitive complexity at most 21, and Halstead difficulty below 80.
+`check` runs Biome, the source metrics gate, and 16 tests covering the gate, API contracts, publication filtering, HTML sanitization, and price drift. The gate requires fewer than 500 lines per source/configuration file, cyclomatic complexity below 22, cognitive complexity at most 21, and Halstead difficulty below 80.
 
 Manual checks with the dev server:
 

@@ -162,14 +162,15 @@ export default function ApiDocs() {
             <summary>
               <span className="docs-method">GET</span>
               <code>/api/prices</code>
-              <span className="docs-purpose">5 assets · updates every 5s</span>
+              <span className="docs-purpose">6 assets · updates every 5s</span>
               <span className="docs-chevron" aria-hidden="true" />
             </summary>
             <div className="docs-endpoint-body">
               <div>
                 <h3>No parameters required</h3>
                 <p>
-                  Returns <strong>Price[]</strong>: BTC, ETH, SOL, XRP, DOGE.
+                  Returns <strong>Price[]</strong>: BTC, ETH, SOL, XRP, DOGE,
+                  USDC.
                 </p>
                 <p>
                   Poll every <strong>5 seconds</strong> for new simulated
@@ -193,7 +194,7 @@ export default function ApiDocs() {
                       <td>
                         <code>decimals</code>
                       </td>
-                      <td>Display precision: ETH → $3,042.5550</td>
+                      <td>USD precision: ETH → $2,635.56</td>
                     </tr>
                     <tr>
                       <td>
@@ -205,6 +206,10 @@ export default function ApiDocs() {
                     </tr>
                   </tbody>
                 </table>
+                <p className="docs-hint">
+                  BTC / ETH / SOL: 2 decimals · XRP / USDC: 4 · DOGE: 5. USDC
+                  stays near $1.
+                </p>
                 <a className="docs-try" href="/api/prices">
                   Open JSON <span aria-hidden="true">↗</span>
                 </a>
@@ -220,8 +225,8 @@ export default function ApiDocs() {
                         {
                           symbol: "ETH",
                           name: "Ethereum",
-                          price: "3042.55501200",
-                          decimals: 4,
+                          price: "2635.56000000",
+                          decimals: 2,
                           change24h: "0.87",
                         },
                       ],

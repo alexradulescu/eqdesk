@@ -92,10 +92,10 @@ Keep React Compiler off in this practice app as agreed in slice 00. We are keepi
 
 ## Check
 
-In browser devtools, block requests matching `http://localhost:3000/api/prices` after the initial prices appear. Wait for the next poll. All five prices stay visible and the notice appears. Unblock requests: the next successful poll updates prices and removes the notice.
+In browser devtools, block requests matching `http://localhost:3000/api/prices` after the initial prices appear. Wait for the next poll. All six prices stay visible and the notice appears. Unblock requests: the next successful poll updates prices and removes the notice.
 
 Browser blocking affects browser polls, not the server's initial fetch. To check the initial fallback separately, temporarily request `/api/prices?fail=1` in `getPrices`, reload, and confirm that stories render with the unavailable notice. Restore the endpoint and reload before checkpointing.
 
 **Talk it through:** if a request takes eight seconds, what should the five-second tick do while it is still pending?
 
-**Stop here.** The happy-path shortcut is removed. Do not add WebSockets, retry backoff, or a state library for this five-asset mock.
+**Stop here.** The happy-path shortcut is removed. Do not add WebSockets, retry backoff, or a state library for this six-asset mock.

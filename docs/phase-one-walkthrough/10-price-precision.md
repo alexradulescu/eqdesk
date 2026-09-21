@@ -1,14 +1,14 @@
 # 10 — Respect the price contract
 
-**Outcome:** BTC has two decimal places, ETH four, and DOGE six. The signed 24-hour change appears beneath each quote.
+**Outcome:** BTC, ETH, and SOL have two decimal places; XRP and USDC four; DOGE five. The signed 24-hour change appears beneath each quote.
 
 ## Show me
 
 ```text
-"3042.55501200" + decimals: 4
+"2635.56000000" + decimals: 2
   → Number(...)
   → Intl.NumberFormat
-  → $3,042.5550
+  → $2,635.56
 ```
 
 ## You type
@@ -33,8 +33,8 @@ Keep the rest of the list unchanged. A sign communicates direction without relyi
 
 ## Check
 
-BTC and SOL: 2 places. ETH and XRP: 4. DOGE: 6. Inspect the current API response and compare its `decimals` with your output. The actual values may drift between requests; compare formatting, not two quotes captured at different times.
+BTC, ETH, SOL: 2 places. XRP, USDC: 4. DOGE: 5. USDC should remain close to $1. These are USD quote decimals, not on-chain token decimals. Inspect the current API response and compare its `decimals` with your output. The actual values may drift between requests; compare formatting, not two quotes captured at different times.
 
 **Talk it through:** why isn't `toFixed(2)` correct for every asset? Why specify both the minimum and maximum fraction digits?
 
-**Stop here.** Formatting is now complete. Do not add a formatter registry or caching layer for five rows; we have no evidence that it is necessary.
+**Stop here.** Formatting is now complete. Do not add a formatter registry or caching layer for six rows; we have no evidence that it is necessary.

@@ -48,7 +48,7 @@ Each file contains the outcome, a show-me view, exact edits or a complete small 
 | [06 — Click a headline](06-click-a-headline.md) | A URL-specific article screen | Link and async route params |
 | [07 — Article fields](07-article-fields.md) | Title, metadata, hero; unknown ID gives 404 | Detail fetch and notFound |
 | [08 — Safe body](08-safe-body.md) | Formatted article HTML | Sanitization boundary |
-| [09 — Shared prices](09-shared-prices.md) | Five prices beside either page | Nested UI in the shared layout |
+| [09 — Shared prices](09-shared-prices.md) | Six prices beside either page | Nested UI in the shared layout |
 | [10 — Price precision](10-price-precision.md) | Correct decimals and signed changes | Read the API contract |
 | [11 — Polling](11-polling.md) | Prices change without reload | Server first paint, client effect |
 | [12 — Price failures](12-price-failures.md) | Last known prices survive a failure | Retry, timeout, cleanup |

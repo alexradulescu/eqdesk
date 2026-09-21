@@ -74,7 +74,14 @@ test("quotes are stable within a bucket, shift at five seconds, and stay bounded
   expect(getPrices(14999)).toEqual(first);
   const next = getPrices(15000);
   expect(next).not.toEqual(first);
-  expect(first.map((price) => price.decimals)).toEqual([2, 4, 2, 4, 6]);
+  expect(first.map(({ symbol, decimals }) => [symbol, decimals])).toEqual([
+    ["BTC", 2],
+    ["ETH", 2],
+    ["SOL", 2],
+    ["XRP", 4],
+    ["DOGE", 5],
+    ["USDC", 4],
+  ]);
   for (const [index, quote] of next.entries()) {
     expect(typeof quote.price).toBe("string");
     expect(
@@ -97,4 +104,26 @@ test("all endpoints support simulated failures; prices disable caching", async (
   expect(
     (await prices(request("/api/prices"))).headers.get("Cache-Control"),
   ).toBe("no-store");
+});
+
+test("USDC stays near its peg, visibly drifts, and avoids negative-zero changes", async () => {
+  const response = await prices(request("/api/prices"));
+  const assets = await response.json();
+  expect(assets).toHaveLength(6);
+  expect(
+    assets.find((asset: { symbol: string }) => asset.symbol === "USDC"),
+  ).toMatchObject({ name: "USDC", decimals: 4 });
+  const displayed = new Set<string>();
+  for (let tick = 0; tick < 100; tick++) {
+    const stablecoin = getPrices(tick * 5000).find(
+      (asset) => asset.symbol === "USDC",
+    );
+    if (!stablecoin) throw new Error("USDC is missing from the quote fixtures");
+    const value = Number(stablecoin.price);
+    expect(Math.abs(value - 0.9997)).toBeLessThanOrEqual(0.0001);
+    expect(Math.abs(Number(stablecoin.change24h))).toBeLessThanOrEqual(0.01);
+    expect(stablecoin.change24h).not.toBe("-0.00");
+    displayed.add(value.toFixed(stablecoin.decimals));
+  }
+  expect(displayed.size).toBeGreaterThan(1);
 });

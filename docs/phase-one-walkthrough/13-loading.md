@@ -42,7 +42,8 @@ To try the same behavior on detail pages, change `getArticle` in `lib/api.ts` to
 -export async function getArticle(id: string): Promise<Article | null> {
 -  const response = await fetch(`${API_ORIGIN}/api/articles/${encodeURIComponent(id)}`, {
 +export async function getArticle(id: string, query = ""): Promise<Article | null> {
-+  const response = await fetch(`${API_ORIGIN}/api/articles/${encodeURIComponent(id)}?${query}`, {
++  const path = `/api/articles/${encodeURIComponent(id)}${query ? `?${query}` : ""}`;
++  const response = await fetch(`${API_ORIGIN}${path}`, {
 ```
 
 In `app/articles/[id]/page.tsx`, replace the function opening through the article fetch. Keep the existing `notFound()` check and rendering below it:

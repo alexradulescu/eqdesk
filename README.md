@@ -75,6 +75,11 @@ Prices and percentage changes are strings. `decimals` controls price formatting;
 
 This is a local exercise implementation. Public hosting, hosted rate limiting, a second cohort fixture set, the bonus categories endpoint, and Session 2 are not included.
 
+
+## Rebuild it yourself
+
+[Start the guided Phase 1 walkthrough](docs/phase-one-walkthrough/README.md). There are 17 small slices, each with a visual, code to type, a browser check, and a pause for review. The practice app belongs in a separate folder on port 3001; this repo supplies the API on port 3000. The practice app has not been created for you.
+
 ## Verify
 
 ```sh

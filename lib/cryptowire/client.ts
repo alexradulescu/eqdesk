@@ -1,11 +1,21 @@
 import "server-only";
+import { headers } from "next/headers";
 
 // Set this to the public mock API URL when running the API separately.
 export const apiOrigin = process.env.CRYPTOWIRE_API_URL ?? "";
-const apiUrl = apiOrigin || "http://localhost:3000";
+
+// The reference app calls its own bundled API, so follow the incoming request
+// rather than a fixed port. Proxies and hosts set x-forwarded-proto.
+async function serverOrigin() {
+  if (apiOrigin) return apiOrigin;
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("host");
+  const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
+  return `${protocol}://${host}`;
+}
 
 export async function fetchApi<T>(path: string): Promise<T | null> {
-  const response = await fetch(`${apiUrl}/api${path}`, {
+  const response = await fetch(`${await serverOrigin()}/api${path}`, {
     cache: "no-store",
     signal: AbortSignal.timeout(15000),
   });

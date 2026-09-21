@@ -11,13 +11,13 @@ bun run dev
 
 Open http://localhost:3000 for API documentation. The unlinked reference implementation is at http://localhost:3000/alex (including its article pages under `/alex/articles`). It is marked `noindex, nofollow`; this is not access control. Click a headline to read it, or **Older stories** for page two. Prices change slightly every five seconds without reloading the page.
 
-The server fetches the bundled REST API at `http://localhost:3000`. For another port or a separately hosted mock API, set `CRYPTOWIRE_API_URL` to its origin (no trailing slash). Both the initial prices and browser polling use that API. This must be a public, browser-reachable URL with CORS enabled when cross-origin.
+The server fetches the bundled REST API on the origin of the incoming request, so any port or deployment host works without configuration. To point the reference at a separately hosted mock API, set `CRYPTOWIRE_API_URL` to its origin (no trailing slash). Both the initial prices and browser polling then use that API, which must be a public, browser-reachable URL with CORS enabled when cross-origin.
 
 Production preview:
 
 ```sh
 bun run build
-CRYPTOWIRE_API_URL=http://localhost:3100 bun run start --port 3100
+bun run start --port 3100
 ```
 
 ## How it works

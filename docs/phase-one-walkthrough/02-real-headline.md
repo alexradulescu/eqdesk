@@ -19,6 +19,7 @@ Replace `app/page.tsx`:
 export default async function Home() {
   const response = await fetch("http://localhost:3000/api/articles?limit=1", {
     cache: "no-store",
+    headers: { Authorization: "Bearer BullishToMars@2027!" },
   });
   if (!response.ok) throw new Error("Could not load stories");
   const articles: { id: string; title: string }[] = await response.json();

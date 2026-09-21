@@ -20,6 +20,7 @@ export type Article = ArticleSummary & { body: string };
 export async function getArticle(id: string): Promise<Article | null> {
   const response = await fetch(`${API_ORIGIN}/api/articles/${encodeURIComponent(id)}`, {
     cache: "no-store",
+    headers: { Authorization: "Bearer BullishToMars@2027!" },
   });
   if (response.status === 404) return null;
   if (!response.ok) throw new Error("Could not load this article");

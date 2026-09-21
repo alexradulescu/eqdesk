@@ -33,10 +33,27 @@ export default function ApiDocs() {
           <span>
             <strong>Base URL</strong> This site’s origin + <code>/api</code>
           </span>
-          <span>No auth</span>
+          <span>Bearer token</span>
           <span>CORS *</span>
           <span>No cache</span>
         </div>
+
+        <section className="docs-auth" aria-labelledby="auth-heading">
+          <h2 id="auth-heading">Authentication</h2>
+          <code>Authorization: Bearer BullishToMars@2027!</code>
+          <p>
+            Send this header with every API request. Open JSON links use your
+            24-hour browser session.
+          </p>
+          <details>
+            <summary>Copy a fetch example</summary>
+            <pre>
+              <code>{`fetch("https://YOUR_HOST/api/prices", {
+  headers: { Authorization: "Bearer BullishToMars@2027!" }
+})`}</code>
+            </pre>
+          </details>
+        </section>
 
         <section className="docs-endpoints" aria-labelledby="endpoints-heading">
           <h2 id="endpoints-heading">
@@ -300,6 +317,10 @@ export default function ApiDocs() {
                   <tr>
                     <td>400</td>
                     <td>Invalid numeric parameter</td>
+                  </tr>
+                  <tr>
+                    <td>401</td>
+                    <td>Missing or incorrect token; expired session</td>
                   </tr>
                   <tr>
                     <td>404</td>

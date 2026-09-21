@@ -28,6 +28,7 @@ export type ArticleSummary = {
 export async function getArticles(query = "limit=12"): Promise<ArticleSummary[]> {
   const response = await fetch(`${API_ORIGIN}/api/articles?${query}`, {
     cache: "no-store",
+    headers: { Authorization: "Bearer BullishToMars@2027!" },
   });
   if (!response.ok) throw new Error("Could not load stories");
   return response.json();

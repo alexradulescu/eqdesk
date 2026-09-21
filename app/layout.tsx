@@ -7,7 +7,7 @@ const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "CryptoWire API — Documentation",
   description:
-    "A small public REST API for a crypto news interview exercise. Articles, HTML bodies, and simulated prices. No keys or signup.",
+    "A small password-protected REST API for a crypto news interview exercise. Articles, HTML bodies, and simulated prices. Shared exercise access.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -146,7 +146,7 @@ describe("password gate", () => {
     expect(validSession(`9999999999999.${token.split(".")[1]}`, 1000)).toBe(
       false,
     );
-    expect(validSession("9999999999999." + "é".repeat(64))).toBe(false);
+    expect(validSession(`9999999999999.${"é".repeat(64)}`)).toBe(false);
     expect(validSession(undefined)).toBe(false);
   });
 

@@ -21,7 +21,6 @@ In `lib/api.ts`, replace `getPrices` only:
 export async function getPrices(signal?: AbortSignal): Promise<Price[]> {
   const response = await fetch(`${API_ORIGIN}/api/prices`, {
     cache: "no-store",
-    headers: { Authorization: "Bearer BullishToMars@2027!" },
     signal,
   });
   if (!response.ok) throw new Error("Could not load prices");

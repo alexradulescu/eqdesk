@@ -69,5 +69,3 @@ Use a branch such as `codex/cryptowire-practice` in your new app. Commit only af
 - All subsequent slices are pending.
 
 The map is a direction, not a demand to finish. We can stop after any verified slice and pick up from there later.
-
-API access: log into the docs with `BullishToMars@2027!` (24 hours). The practice app sends `Authorization: Bearer BullishToMars@2027!`; the lesson snippets include it.

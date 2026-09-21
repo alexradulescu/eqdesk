@@ -90,7 +90,7 @@ bunx tsc --noEmit
 bun run build
 ```
 
-`check` runs Biome, the source metrics gate, and 19 tests covering the gate, API contracts, publication filtering, HTML sanitization, and price drift. The gate requires fewer than 500 lines per source/configuration file, cyclomatic complexity below 22, cognitive complexity at most 21, and Halstead difficulty below 80.
+`check` runs Biome, the source metrics gate, and 16 tests covering the metrics gate, API contracts, publication filtering, HTML sanitization, and price drift. The gate requires fewer than 500 lines per source/configuration file, cyclomatic complexity below 22, cognitive complexity at most 21, and Halstead difficulty below 80.
 
 Manual checks with the dev server:
 
@@ -102,16 +102,3 @@ Manual checks with the dev server:
 6. Open `/alex?fail=1`: the error state appears. **Back to latest** removes the simulated failure; **Try again** retries the same request.
 7. Block `/api/prices` in browser devtools: last known prices remain with a retry notice. Unblock it: the next successful poll clears the notice.
 
-## Shared access
-
-Open the site and enter `BullishToMars@2027!`. The browser keeps an HttpOnly session cookie for 24 hours; expiry is also checked by the server.
-
-For every external API request, send:
-
-```http
-Authorization: Bearer BullishToMars@2027!
-```
-
-All three data endpoints accept this token or the browser cookie. Missing/invalid access returns `401`. Cross-origin bearer requests support OPTIONS preflight. The reference sends the token for server fetches and price polling.
-
-This is a shared, hardcoded exercise gate to prevent accidental use. The token is intentionally visible in the docs and reference bundle.

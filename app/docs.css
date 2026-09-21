@@ -321,30 +321,3 @@
     gap: 10px;
   }
 }
-
-.docs-auth {
-  margin-bottom: 28px;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-}
-.docs-auth > code {
-  display: block;
-  font-weight: 600;
-}
-.docs-auth p {
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.6;
-}
-.docs-auth details {
-  margin-top: 12px;
-  font-size: 12px;
-}
-.docs-auth summary {
-  cursor: pointer;
-}
-.docs-auth pre {
-  padding-top: 12px;
-}

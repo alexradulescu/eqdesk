@@ -33,10 +33,7 @@ export type Price = {
 };
 
 export async function getPrices(): Promise<Price[]> {
-  const response = await fetch(`${API_ORIGIN}/api/prices`, {
-    cache: "no-store",
-    headers: { Authorization: "Bearer BullishToMars@2027!" },
-  });
+  const response = await fetch(`${API_ORIGIN}/api/prices`, { cache: "no-store" });
   if (!response.ok) throw new Error("Could not load prices");
   return response.json();
 }

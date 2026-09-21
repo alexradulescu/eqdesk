@@ -1,20 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { NextRequest } from "next/server";
 import { GET as article } from "../app/api/articles/[id]/route";
 import { GET as summaries } from "../app/api/articles/route";
 import { GET as prices } from "../app/api/prices/route";
-import { POST as login } from "../app/api/session/route";
-import {
-  createSession,
-  PASSWORD,
-  SESSION_COOKIE,
-  SESSION_SECONDS,
-  validSession,
-} from "../lib/access";
 import { articles } from "../lib/cryptowire/articles";
 import { isPublished, sanitizeBody } from "../lib/cryptowire/content";
 import { getPrices } from "../lib/cryptowire/prices";
-import { proxy } from "../proxy";
 
 const request = (path: string) => new Request(`http://localhost${path}`);
 
@@ -136,84 +126,4 @@ test("USDC stays near its peg, visibly drifts, and avoids negative-zero changes"
     displayed.add(value.toFixed(stablecoin.decimals));
   }
   expect(displayed.size).toBeGreaterThan(1);
-});
-
-describe("password gate", () => {
-  test("sessions expire after 24 hours and reject tampering", () => {
-    const token = createSession(1000);
-    expect(validSession(token, 1000 + SESSION_SECONDS * 1000 - 1)).toBe(true);
-    expect(validSession(token, 1000 + SESSION_SECONDS * 1000)).toBe(false);
-    expect(validSession(`9999999999999.${token.split(".")[1]}`, 1000)).toBe(
-      false,
-    );
-    expect(validSession(`9999999999999.${"é".repeat(64)}`)).toBe(false);
-    expect(validSession(undefined)).toBe(false);
-  });
-
-  test("pages require a session; APIs accept cookies or a bearer token", () => {
-    for (const path of ["/", "/alex", "/alex/articles/example"]) {
-      const response = proxy(new NextRequest(`http://localhost${path}`));
-      expect(response.status).toBe(307);
-      expect(response.headers.get("location")).toContain("/login?next=");
-    }
-    for (const path of [
-      "/api/articles",
-      "/api/articles/example",
-      "/api/prices",
-    ]) {
-      expect(proxy(new NextRequest(`http://localhost${path}`)).status).toBe(
-        401,
-      );
-      expect(
-        proxy(
-          new NextRequest(`http://localhost${path}`, {
-            headers: { Authorization: "Bearer wrong" },
-          }),
-        ).status,
-      ).toBe(401);
-      expect(
-        proxy(
-          new NextRequest(`http://localhost${path}`, {
-            headers: { Authorization: `Bearer ${PASSWORD}` },
-          }),
-        ).status,
-      ).toBe(200);
-      expect(
-        proxy(
-          new NextRequest(`http://localhost${path}`, {
-            headers: { Cookie: `${SESSION_COOKIE}=${createSession()}` },
-          }),
-        ).status,
-      ).toBe(200);
-    }
-    const preflight = proxy(
-      new NextRequest("http://localhost/api/prices", { method: "OPTIONS" }),
-    );
-    expect(preflight.status).toBe(204);
-    expect(preflight.headers.get("Access-Control-Allow-Headers")).toContain(
-      "Authorization",
-    );
-  });
-
-  test("login rejects wrong passwords and issues an HttpOnly 24-hour cookie", async () => {
-    for (const password of ["wrong", PASSWORD]) {
-      const data = new FormData();
-      data.set("password", password);
-      const response = await login(
-        new Request("https://localhost/api/session", {
-          method: "POST",
-          body: data,
-        }),
-      );
-      expect(response.status).toBe(password === PASSWORD ? 200 : 401);
-      if (password === PASSWORD) {
-        const cookie = response.headers.get("set-cookie") || "";
-        expect(cookie).toContain("Max-Age=86400");
-        expect(cookie).toContain("HttpOnly");
-        expect(cookie).toContain("Secure");
-      } else {
-        expect(response.headers.has("set-cookie")).toBe(false);
-      }
-    }
-  });
 });

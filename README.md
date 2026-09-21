@@ -9,7 +9,7 @@ bun install --frozen-lockfile
 bun run dev
 ```
 
-Open http://localhost:3000. Click a headline to read it, or **Older stories** for page two. Prices change slightly every five seconds without reloading the page.
+Open http://localhost:3000 for API documentation. The unlinked reference implementation is at http://localhost:3000/alex (including its article pages under `/alex/articles`). It is marked `noindex, nofollow`; this is not access control. Click a headline to read it, or **Older stories** for page two. Prices change slightly every five seconds without reloading the page.
 
 The server fetches the bundled REST API at `http://localhost:3000`. For another port or a separately hosted mock API, set `CRYPTOWIRE_API_URL` to its origin (no trailing slash). Both the initial prices and browser polling use that API. This must be a public, browser-reachable URL with CORS enabled when cross-origin.
 
@@ -22,9 +22,10 @@ CRYPTOWIRE_API_URL=http://localhost:3100 bun run start --port 3100
 
 ## How it works
 
-- `app/layout.tsx` owns the header, two columns, and persistent price aside.
-- `app/page.tsx` fetches six article summaries per page, plus one to check for the next page. It filters future publication dates before rendering.
-- `app/articles/[slug]/page.tsx` fetches a full article and rejects unknown or future-dated stories.
+- `app/layout.tsx` owns only the document shell and font. `app/page.tsx` is static API documentation; it does not fetch or poll prices.
+- `app/alex/layout.tsx` owns the reference header, two columns, and persistent price aside.
+- `app/alex/page.tsx` fetches six article summaries per page, plus one to check for the next page. It filters future publication dates before rendering.
+- `app/alex/articles/[slug]/page.tsx` fetches a full article and rejects unknown or future-dated stories.
 - `components/article-body.tsx` sanitizes the HTML body with an explicit tag and attribute allowlist before rendering. Title, date, category, and hero image stay separate.
 - `components/price-aside.tsx` fetches the initial prices on the server. `components/prices.tsx` polls every five seconds, skips overlapping requests, aborts on unmount, and keeps last known values after a failure.
 - `lib/cryptowire/articles.ts` contains the fixtures. `lib/cryptowire/prices.ts` calculates quotes from five-second time buckets. Quotes stay within 0.1% of their base values; no background timer or database is needed.
@@ -86,10 +87,10 @@ bun run build
 
 Manual checks with the dev server:
 
-1. Open `/`, then an article: the same price aside remains and prices keep updating.
-2. Open `/?page=2`: five stories, no embargoed headline.
-3. Open `/articles/wallets-designed-for-people`: the missing-image placeholder and full body appear.
-4. Open `/articles/tomorrows-market-brief`: story not found.
-5. Open `/?latency=3000`: loading text appears before the list. Also supported on article URLs.
-6. Open `/?fail=1`: the error state appears. **Back to latest** removes the simulated failure; **Try again** retries the same request.
+1. Open `/alex`, then an article: the same price aside remains and prices keep updating.
+2. Open `/alex?page=2`: five stories, no embargoed headline.
+3. Open `/alex/articles/wallets-designed-for-people`: the missing-image placeholder and full body appear.
+4. Open `/alex/articles/tomorrows-market-brief`: story not found.
+5. Open `/alex?latency=3000`: loading text appears before the list. Also supported on article URLs.
+6. Open `/alex?fail=1`: the error state appears. **Back to latest** removes the simulated failure; **Try again** retries the same request.
 7. Block `/api/prices` in browser devtools: last known prices remain with a retry notice. Unblock it: the next successful poll clears the notice.

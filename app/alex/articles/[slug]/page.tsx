@@ -10,7 +10,7 @@ import type { Article } from "@/lib/cryptowire/types";
 export default async function ArticlePage({
   params,
   searchParams,
-}: PageProps<"/articles/[slug]">) {
+}: PageProps<"/alex/articles/[slug]">) {
   const { slug } = await params;
   const query = await searchParams;
   const debug = new URLSearchParams();
@@ -23,7 +23,7 @@ export default async function ArticlePage({
 
   return (
     <>
-      <Link href="/" className="back-link">
+      <Link href="/alex" className="back-link">
         ← Back to latest
       </Link>
       <article>

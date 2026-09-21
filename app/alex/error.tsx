@@ -10,7 +10,7 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
       <button type="button" onClick={reset}>
         Try again
       </button>
-      <Link className="back-link" href="/">
+      <Link className="back-link" href="/alex">
         ← Back to latest
       </Link>
     </div>

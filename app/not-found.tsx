@@ -2,12 +2,10 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="page-message">
-      <h1>Story not found</h1>
-      <p>This story is not available in our published edition.</p>
-      <Link className="back-link" href="/">
-        ← Back to latest
-      </Link>
-    </div>
+    <main id="main-content" className="container page-message">
+      <h1>Page not found</h1>
+      <p>This page does not exist.</p>
+      <Link href="/">← API documentation</Link>
+    </main>
   );
 }

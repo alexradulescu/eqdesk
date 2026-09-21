@@ -1,19 +1,11 @@
-import { Fragment } from "react";
-import type { Article } from "@/lib/sanity/mock-data";
+import { sanitizeBody } from "@/lib/cryptowire/content";
 
-export function ArticleBody({ body }: { body: Article["body"] }) {
+export function ArticleBody({ body }: { body: string }) {
   return (
-    <div className="article-body">
-      {body.map((paragraph, index) => (
-        <Fragment key={paragraph._key}>
-          <p>{paragraph.children.map((span) => span.text).join("")}</p>
-          {(index + 1) % 2 === 0 && (
-            <aside className="advertisement" aria-label="Advertisement">
-              Advertisement
-            </aside>
-          )}
-        </Fragment>
-      ))}
-    </div>
+    <div
+      className="article-body"
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: HTML is sanitized with an explicit allowlist on the server.
+      dangerouslySetInnerHTML={{ __html: sanitizeBody(body) }}
+    />
   );
 }

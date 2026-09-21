@@ -42,7 +42,8 @@ To try the same behavior on detail pages, change `getArticle` in `lib/api.ts` to
 -export async function getArticle(id: string): Promise<Article | null> {
 -  const response = await fetch(`${API_ORIGIN}/api/articles/${encodeURIComponent(id)}`, {
 +export async function getArticle(id: string, query = ""): Promise<Article | null> {
-+  const path = `/api/articles/${encodeURIComponent(id)}${query ? `?${query}` : ""}`;
++  const search = query ? `?${query}` : "";
++  const path = `/api/articles/${encodeURIComponent(id)}${search}`;
 +  const response = await fetch(`${API_ORIGIN}${path}`, {
 ```
 

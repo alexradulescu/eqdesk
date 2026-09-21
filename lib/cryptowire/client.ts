@@ -1,4 +1,5 @@
 import "server-only";
+import { PASSWORD } from "@/lib/access";
 
 // Set this to the public mock API URL when running the API separately.
 export const apiOrigin = process.env.CRYPTOWIRE_API_URL ?? "";
@@ -7,6 +8,7 @@ const apiUrl = apiOrigin || "http://localhost:3000";
 export async function fetchApi<T>(path: string): Promise<T | null> {
   const response = await fetch(`${apiUrl}/api${path}`, {
     cache: "no-store",
+    headers: { Authorization: `Bearer ${PASSWORD}` },
     signal: AbortSignal.timeout(15000),
   });
   if (response.status === 404) return null;

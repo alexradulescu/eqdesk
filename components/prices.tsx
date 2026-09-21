@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PASSWORD } from "@/lib/api-token";
 import type { Price } from "@/lib/cryptowire/types";
 
 async function fetchPrices(url: string, signal: AbortSignal): Promise<Price[]> {
   const response = await fetch(url, {
     cache: "no-store",
+    headers: { Authorization: `Bearer ${PASSWORD}` },
     signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]),
   });
   if (!response.ok) throw new Error("Prices unavailable");

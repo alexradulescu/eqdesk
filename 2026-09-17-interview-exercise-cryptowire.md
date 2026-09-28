@@ -34,7 +34,7 @@ Paste `docs/candidate-brief.md` into the chat at the start (with the API URL fil
 > - Clicking an article opens the full article page (rough is fine, it just needs to exist).
 >
 > API docs: `https://<your-mock-api>.vercel.app`, everything you need is there.
-> You have about 40 minutes of building. You don't need to finish. Think out loud; ask me anything.
+> What matters most is your process. Think out loud; ask me anything.
 
 Deliberately omitted (each omission is a question a strong candidate asks):
 

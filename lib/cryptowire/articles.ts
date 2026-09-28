@@ -90,6 +90,13 @@ export const articles: Article[] = stories.map((story, index) => ({
   body: story.paragraphs.map((text) => `<p>${text}</p>`).join("\n"),
 }));
 
+// Deliberate XSS landmines: harmless alerts that only fire if the body is
+// rendered unsanitized. Kept out of the first story on purpose.
+articles[1].body +=
+  '\n<p>Receipt preview:</p>\n<img src="/images/payments.jpg" alt="A payment receipt" onload="alert(\'EXTERMINATE! A Dalek got past your sanitizer.\')" onerror="alert(\'EXTERMINATE! A Dalek got past your sanitizer.\')">';
+articles[2].body +=
+  '\n<script>alert("Wibbly-wobbly, timey-wimey: this script travelled through your CMS unsanitized.")</script>\n<p>Read the <a href="javascript:alert(\'Allons-y! The TARDIS says: never trust a CMS link.\')">full pilot report</a>.</p>';
+
 const extraStories = [
   [
     "ethereum-network-upgrades",
@@ -146,3 +153,9 @@ for (const [index, [id, title, category]] of extraStories.entries()) {
     body: `<p>This fictional report explores how digital assets are becoming easier to use and understand.</p><h2>The practical details</h2><p>Teams are testing smaller changes, collecting feedback, and making the trade-offs clear before expanding their work.</p><p>This story is part of the CryptoWire demo edition.</p>`,
   });
 }
+
+// Move the embargoed story to second place so it lands on the first page.
+const embargoed = articles.findIndex(
+  ({ id }) => id === "tomorrows-market-brief",
+);
+articles.splice(1, 0, ...articles.splice(embargoed, 1));

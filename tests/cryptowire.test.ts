@@ -69,6 +69,18 @@ test("sanitization keeps editorial HTML and removes executable markup", () => {
   expect(clean).not.toMatch(/script|onerror|onload|iframe|svg|alert/);
 });
 
+test("fixture landmines sit early in the list and are defused by sanitization", () => {
+  expect(articles[1].id).toBe("tomorrows-market-brief");
+  const trapped = articles.filter(({ body }) => body.includes("alert("));
+  expect(trapped.map(({ id }) => id)).toEqual([
+    "stablecoins-meet-everyday-payments",
+    "institutions-build-onchain",
+  ]);
+  for (const { body } of trapped) {
+    expect(sanitizeBody(body)).not.toMatch(/script|onerror|onload|alert/);
+  }
+});
+
 test("quotes are stable within a bucket, shift at five seconds, and stay bounded", () => {
   const first = getPrices(10000);
   expect(getPrices(14999)).toEqual(first);

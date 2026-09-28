@@ -30,6 +30,19 @@ describe("article contract", () => {
     expect(missing.status).toBe(404);
   });
 
+  test("image URLs are absolute on the serving origin", async () => {
+    const rows = await (await summaries(request("/api/articles"))).json();
+    for (const { image } of rows) {
+      if (image) expect(image.url).toMatch(/^http:\/\/localhost\/images\//);
+    }
+    const detail = await article(request("/api/articles/x"), {
+      params: Promise.resolve({ id: "stablecoins-meet-everyday-payments" }),
+    });
+    expect((await detail.json()).body).toContain(
+      'src="http://localhost/images/payments.jpg"',
+    );
+  });
+
   test("invalid pagination is rejected", async () => {
     for (const query of [
       "limit=0",

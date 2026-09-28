@@ -1,4 +1,4 @@
-import { debugResponse, json } from "@/lib/cryptowire/api";
+import { debugResponse, json, withAbsoluteUrls } from "@/lib/cryptowire/api";
 import { articles } from "@/lib/cryptowire/articles";
 
 export async function GET(
@@ -9,5 +9,7 @@ export async function GET(
   if (debug) return debug;
   const { id } = await params;
   const article = articles.find((article) => article.id === id);
-  return article ? json(article) : json({ error: "Article not found" }, 404);
+  return article
+    ? json(withAbsoluteUrls(article, request.url))
+    : json({ error: "Article not found" }, 404);
 }

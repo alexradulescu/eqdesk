@@ -6,8 +6,28 @@ const article = {
   title: "Bitcoin finds its footing as investors take the long view",
   category: "Markets",
   publishedAt: "2026-09-05T08:00:00Z",
-  image: { url: "/images/bitcoin.jpg", alt: "Bitcoin coins" },
+  image: { url: "https://<api-host>/images/bitcoin.jpg", alt: "Bitcoin coins" },
 };
+
+const types = `export type ArticleSummary = {
+  id: string;
+  title: string;
+  category: string;
+  publishedAt: string; // ISO 8601, UTC
+  image: { url: string; alt: string } | null;
+};
+
+export type Article = ArticleSummary & {
+  body: string; // HTML
+};
+
+export type Price = {
+  symbol: string;
+  name: string;
+  price: string; // full precision
+  decimals: number; // digits to display
+  change24h: string; // percent
+};`;
 
 export default function ApiDocs() {
   return (
@@ -250,8 +270,8 @@ export default function ApiDocs() {
               <div>
                 <dt>image</dt>
                 <dd>
-                  <code>null</code> or <code>{"{ url, alt }"}</code>. Relative
-                  URLs use the API origin.
+                  <code>null</code> or <code>{"{ url, alt }"}</code>. Absolute
+                  URL.
                 </dd>
               </div>
               <div>
@@ -316,6 +336,13 @@ export default function ApiDocs() {
             </details>
           </section>
         </div>
+        <section className="docs-types" aria-labelledby="types-heading">
+          <h2 id="types-heading">TypeScript types</h2>
+          <p>Copy into your project.</p>
+          <pre>
+            <code>{types}</code>
+          </pre>
+        </section>
         <p className="docs-footnote">
           Response headers: <code>Access-Control-Allow-Origin: *</code> ·{" "}
           <code>Cache-Control: no-store</code>

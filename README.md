@@ -52,7 +52,7 @@ Article shape:
   "title": "Bitcoin finds its footing as investors take the long view",
   "category": "Markets",
   "publishedAt": "2026-09-05T08:00:00Z",
-  "image": { "url": "/images/bitcoin.jpg", "alt": "Bitcoin coins" },
+  "image": { "url": "https://<api-host>/images/bitcoin.jpg", "alt": "Bitcoin coins" },
   "body": "<p>Article text...</p>"
 }
 ```

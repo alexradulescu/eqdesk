@@ -129,8 +129,7 @@ export default function ApiDocs() {
                   <code>body</code>.
                 </p>
                 <p className="docs-hint">
-                  Unknown ID → <code>404</code>. Body is HTML; sanitize before
-                  rendering.
+                  Unknown ID → <code>404</code>.
                 </p>
                 <a
                   className="docs-try"
@@ -246,10 +245,7 @@ export default function ApiDocs() {
             <dl>
               <div>
                 <dt>publishedAt</dt>
-                <dd>
-                  ISO UTC. Includes a future-dated article, also available by
-                  ID.
-                </dd>
+                <dd>ISO UTC.</dd>
               </div>
               <div>
                 <dt>image</dt>
@@ -260,7 +256,7 @@ export default function ApiDocs() {
               </div>
               <div>
                 <dt>body</dt>
-                <dd>HTML string. Title & hero are separate. Sanitize it.</dd>
+                <dd>HTML string. Title & hero are separate.</dd>
               </div>
               <div>
                 <dt>price</dt>
@@ -269,6 +265,9 @@ export default function ApiDocs() {
                 </dd>
               </div>
             </dl>
+            <p className="docs-hint">
+              The API reflects the state of the world. Handle what it gives you.
+            </p>
           </section>
           <section className="docs-debug" aria-labelledby="debug-heading">
             <h2 id="debug-heading">Test loading & errors</h2>

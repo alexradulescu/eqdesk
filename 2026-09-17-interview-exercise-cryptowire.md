@@ -1,5 +1,8 @@
 # Interview Exercise: "CryptoWire": Next.js News Site
 
+> **INTERVIEWER ONLY. Do not share this document with candidates.**
+> The candidate never sees this file. Read the brief (§1) aloud or paste only the quoted brief text into chat. Everything else (layouts marked "interviewer reference", data quirks, landmines, question bank, rubric) stays with the interviewer. The candidate's only written material is the public API docs page at the API root, which deliberately does not mention the landmines.
+
 **Status:** draft.
 **Audience:** interviewers for web/new-hire roles on the CDM team.
 **Format:** two sessions, one sitting (or split across two calls).
@@ -172,8 +175,8 @@ A small Next.js route-handler app deployed to Vercel. Public URL, open CORS, no 
 |---|---|---|
 | `GET /api/articles` | Array of ~12 article summaries | `?limit=`, `?offset=` supported |
 | `GET /api/articles/:id` | Full article incl. `body` | 404 for unknown id |
-| `GET /api/prices` | Array of 5 assets | Static or slowly drifting values |
-| `GET /api/categories` | Array of category names | **Bonus**, build last; only used by the early-finisher filler |
+| `GET /api/prices` | Array of 6 assets (BTC, ETH, SOL, XRP, DOGE, USDC) | Static or slowly drifting values |
+| `GET /api/categories` | Not built | Discussion only: ask the early finisher how they would add it |
 
 ### Debug params (interviewer-triggered, on every endpoint)
 
@@ -183,10 +186,10 @@ A small Next.js route-handler app deployed to Vercel. Public URL, open CORS, no 
 ### Deliberate data quirks (documented in the API README, but candidates must read it)
 
 1. `publishedAt` is an ISO UTC string (`"2026-09-17T09:41:00Z"`). Plain, no quirk; date formatting is not the signal we need.
-2. Article `body` is an **HTML string** (`<p>`, `<img>`, `<h2>`...), as a WYSIWYG/Sanity-style rich-text field would produce. Title, meta and hero image are **separate structured fields**, not inside the body. The deliberate fork: render raw (XSS hole), reach for `dangerouslySetInnerHTML` without thinking, or sanitize (DOMPurify or an allowlist). The README states the body is HTML. The *safety* of rendering it is theirs to reason about.
-3. Prices come back as **strings with full precision** (`"3042.555012"`), each asset carrying a `decimals` field (BTC 2, ETH 4, DOGE 6...). Correct render = the API's declared precision (`$3,042.56`), not the raw string and not an invented precision. Tests: contract reading, `Intl.NumberFormat`/`toFixed` vs naive interpolation, string-not-number awareness.
+2. Article `body` is an **HTML string** (`<p>`, `<img>`, `<h2>`...), as a WYSIWYG/Sanity-style rich-text field would produce. Title, meta and hero image are **separate structured fields**, not inside the body. The deliberate fork: render raw (XSS hole), reach for `dangerouslySetInnerHTML` without thinking, or sanitize (DOMPurify or an allowlist). The README states the body is HTML. The *safety* of rendering it is theirs to reason about. Two stories carry live landmines (harmless Doctor Who alerts) that fire only if the body is rendered unsanitized: #3 in the list (`stablecoins-meet-everyday-payments`) has an `<img onload/onerror>`; #4 (`institutions-build-onchain`) has a `<script>` and a `javascript:` link. Story #1 is clean so the first click is not a giveaway.
+3. Prices come back as **strings with full precision** (`"3042.555012"`), each asset carrying a `decimals` field (BTC / ETH / SOL 2, XRP / USDC 4, DOGE 5). Correct render = the API's declared precision (`$3,042.56`), not the raw string and not an invented precision. Tests: contract reading, `Intl.NumberFormat`/`toFixed` vs naive interpolation, string-not-number awareness.
 4. Some articles have `image: null` (both hero and list thumbnail).
-5. **The landmine:** the list contains one article with a **future `publishedAt`** (embargoed). The brief never mentions it. A correct client filters it out; almost nobody does on the first pass. Do not hint. If they never notice, raise it in discussion: "did you check what the API actually returns?" Strong seniority signal either way.
+5. **The landmine:** the list contains one article with a **future `publishedAt`** (embargoed), placed **second** in the list so it lands on page one at any page size. The brief never mentions it. A correct client filters it out; almost nobody does on the first pass. Do not hint. If they never notice, raise it in discussion: "did you check what the API actually returns?" Strong seniority signal either way.
 
 ### README at the API root
 
@@ -262,7 +265,7 @@ Each cut removes pixels or boilerplate, never decisions or discussion:
 - Price aside = plain text list or table; its signal lives in the fetch discussion, not the visuals.
 - Article detail page only needs to exist, rough; enough to anchor the sanitize and cache questions.
 - Error handling (`?fail=1`) is **verbal**. Trigger `?latency=` live (loading states stay `implement`), ask "and on a 500?" aloud.
-- A/B-test question is the first cut under time pressure; `/api/categories` + the category-filter filler are bonus-only.
+- A/B-test question is the first cut under time pressure; the category-filter filler is bonus-only (`/api/categories` is discussion only).
 
 Never cut, even under time pressure: the vague brief (questions-asked rubric costs zero minutes), the `?latency=` live trigger, the embargoed article, the "do prices need to be live?" question, and both bold session-2 questions.
 
@@ -276,7 +279,7 @@ Never cut, even under time pressure: the vague brief (questions-asked rubric cos
 
 - **Nudges are free and noted, never deducted.** A few nudges are fine, introverts included. The limit is total freeze: end the build early and move to discussion rather than leave someone distressed.
 - **Run the full 45-60 min of building no matter what** unless that freeze happens.
-- **Early finisher?** Bonus filler: *"Add a category filter. State lives in the URL."* Via `/api/categories` if built, client-side against the main endpoint if not. Either way it raises query-param state and server vs client filtering.
+- **Early finisher?** Bonus filler: *"Add a category filter. State lives in the URL."* `/api/categories` is not built: filter client-side against the main endpoint, or discuss how they would add the endpoint. Either way it raises query-param state and server vs client filtering.
 - **Trigger failure modes live:** partway through session 1, ask them to hit the API with `?latency=3000` if no loading state has appeared. Error handling is a **verbal** question ("and on a 500?"); don't spend build time on it. Never grade states you didn't give them the chance to see.
 - **Session 2 fraud filter** is one question: "walk me through the final code." Anyone can generate; the hire signal is comprehension.
 - **Never cut** the two bold session-2 questions (SEO/crawler, CDN vs per-user). They map directly onto how coindesk-next works (middleware regwall, ISR + on-demand revalidation).
@@ -285,8 +288,8 @@ Never cut, even under time pressure: the vague brief (questions-asked rubric cos
 
 ## 6. Build checklist for the mock API (one-time)
 
-- [ ] Vercel-deployed Next.js app, route handlers, canned fixtures
-- [ ] 3 core endpoints (articles, article/:id, prices) + `?latency=` + `?fail=` + README at root; `/api/categories` is bonus, build last
-- [ ] The 5 data quirks incl. HTML-string body + one future-dated article
-- [ ] Open CORS, rate limit, zero secrets, no auth
+- [x] Vercel-deployed Next.js app, route handlers, canned fixtures
+- [x] 3 core endpoints (articles, article/:id, prices) + `?latency=` + `?fail=` + README at root; `/api/categories` intentionally skipped (discussion only)
+- [x] The 5 data quirks incl. HTML-string body (with XSS landmines) + one future-dated article
+- [x] Open CORS, zero secrets, no auth. No rate limit, by choice
 - [ ] A second fixture set so question patterns don't leak between candidate cohorts

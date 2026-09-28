@@ -93,7 +93,7 @@ export const articles: Article[] = stories.map((story, index) => ({
 // Deliberate XSS landmines: harmless alerts that only fire if the body is
 // rendered unsanitized. Kept out of the first story on purpose.
 articles[1].body +=
-  '\n<p>Receipt preview:</p>\n<img src="/images/payments.jpg" alt="A payment receipt" onload="alert(\'EXTERMINATE! A Dalek got past your sanitizer.\')" onerror="alert(\'EXTERMINATE! A Dalek got past your sanitizer.\')">';
+  '\n<p>Receipt preview:</p>\n<img src="/images/payments.jpg" alt="A payment receipt" onload="alert(\'Fancy a cuppa? A cheeky script just slipped past your sanitizer.\')" onerror="alert(\'Fancy a cuppa? A cheeky script just slipped past your sanitizer.\')">';
 articles[2].body +=
   '\n<script>alert("Wibbly-wobbly, timey-wimey: this script travelled through your CMS unsanitized.")</script>\n<p>Read the <a href="javascript:alert(\'Allons-y! The TARDIS says: never trust a CMS link.\')">full pilot report</a>.</p>';
 

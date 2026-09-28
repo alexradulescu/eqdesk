@@ -42,7 +42,3 @@ Homepage                                     Article page
 **Docs:** `<API URL, shared at the start of the session>`
 
 Everything you need is on that page, including TypeScript types you can copy. No keys, no sign-up.
-
-## Time
-
-About 40 minutes of building, then we talk through your choices and what you'd do next.

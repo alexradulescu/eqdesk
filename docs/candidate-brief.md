@@ -1,6 +1,6 @@
 # CryptoWire: practical exercise
 
-Build a small crypto news site in Next.js. There's no need to finish: we care more about how you think than about how much you build. Think out loud, and ask anything.
+Build a small crypto news site in Next.js. What matters most is your process: the decisions you make, why you make them, and the questions you ask along the way. Think out loud, and ask anything.
 
 ## What to build
 
@@ -45,4 +45,4 @@ Everything you need is on that page, including TypeScript types you can copy. No
 
 ## Time
 
-About 40 minutes of building, then we talk through what you built and what you'd do next.
+About 40 minutes of building, then we talk through your choices and what you'd do next.

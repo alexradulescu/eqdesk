@@ -21,7 +21,9 @@
 
 Rationale: fake-interview malware campaigns (clone-and-run repo traps) are documented. Nothing of ours executes on the candidate's machine.
 
-### The brief (session 1, read out or pasted in chat, deliberately vague)
+### The brief (session 1, deliberately vague)
+
+Paste `docs/candidate-brief.md` into the chat at the start (with the API URL filled in) so they can refer back to it. The quote below is the same brief in short form, to read out.
 
 > **CryptoWire**, a crypto news homepage.
 >
@@ -32,7 +34,7 @@ Rationale: fake-interview malware campaigns (clone-and-run repo traps) are docum
 > - Clicking an article opens the full article page (rough is fine, it just needs to exist).
 >
 > API docs: `https://<your-mock-api>.vercel.app`, everything you need is there.
-> You have about 75 minutes. You don't need to finish. Think out loud; ask me anything.
+> What matters most is your process. Think out loud; ask me anything.
 
 Deliberately omitted (each omission is a question a strong candidate asks):
 
@@ -173,7 +175,7 @@ A small Next.js route-handler app deployed to Vercel. Public URL, open CORS, no 
 
 | Endpoint | Returns | Notes |
 |---|---|---|
-| `GET /api/articles` | Array of ~12 article summaries | `?limit=`, `?offset=` supported |
+| `GET /api/articles` | Array of ~12 article summaries | `?limit=`, `?offset=` supported (candidates don't need them; pagination is a talk question) |
 | `GET /api/articles/:id` | Full article incl. `body` | 404 for unknown id |
 | `GET /api/prices` | Array of 6 assets (BTC, ETH, SOL, XRP, DOGE, USDC) | Static or slowly drifting values |
 | `GET /api/categories` | Not built | Discussion only: ask the early finisher how they would add it |
@@ -185,15 +187,15 @@ A small Next.js route-handler app deployed to Vercel. Public URL, open CORS, no 
 
 ### Deliberate data quirks (documented in the API README, but candidates must read it)
 
-1. `publishedAt` is an ISO UTC string (`"2026-09-17T09:41:00Z"`). Plain, no quirk; date formatting is not the signal we need.
+1. `publishedAt` is an ISO UTC string (`"2026-09-17T09:41:00Z"`). Plain, no quirk. Any readable date format is fine; formatting is not the signal we need.
 2. Article `body` is an **HTML string** (`<p>`, `<img>`, `<h2>`...), as a WYSIWYG/Sanity-style rich-text field would produce. Title, meta and hero image are **separate structured fields**, not inside the body. The deliberate fork: render raw (XSS hole), reach for `dangerouslySetInnerHTML` without thinking, or sanitize (DOMPurify or an allowlist). The README states the body is HTML. The *safety* of rendering it is theirs to reason about. Two stories carry live landmines (harmless Doctor Who alerts) that fire only if the body is rendered unsanitized: #3 in the list (`stablecoins-meet-everyday-payments`) has an `<img onload/onerror>`; #4 (`institutions-build-onchain`) has a `<script>` and a `javascript:` link. Story #1 is clean so the first click is not a giveaway.
 3. Prices come back as **strings with full precision** (`"3042.555012"`), each asset carrying a `decimals` field (BTC / ETH / SOL 2, XRP / USDC 4, DOGE 5). Correct render = the API's declared precision (`$3,042.56`), not the raw string and not an invented precision. Tests: contract reading, `Intl.NumberFormat`/`toFixed` vs naive interpolation, string-not-number awareness.
-4. Some articles have `image: null` (both hero and list thumbnail).
+4. Some articles have `image: null` (both hero and list thumbnail). Image URLs are absolute, so no URL joining. `next/image` still needs the host in `remotePatterns`; a plain `<img>` needs nothing. Either is fine.
 5. **The landmine:** the list contains one article with a **future `publishedAt`** (embargoed), placed **second** in the list so it lands on page one at any page size. The brief never mentions it. A correct client filters it out; almost nobody does on the first pass. Do not hint. If they never notice, raise it in discussion: "did you check what the API actually returns?" Strong seniority signal either way.
 
 ### README at the API root
 
-Endpoints, response shapes (including the quirks above), and one line: *"The API reflects the state of the world. Handle what it gives you."*
+Endpoints, response shapes (including the quirks above), copyable TypeScript types, and one line: *"The API reflects the state of the world. Handle what it gives you."*
 
 ---
 
@@ -207,9 +209,9 @@ Order matters. Interviewers may skip from the bottom under time pressure. **Neve
 
 | Mode | Anchor moment | Question | What good sounds like |
 |---|---|---|---|
-| implement | Article list fetch works | "This is fine at 10 articles. What changes at 1 million?" | Pagination; cursor vs offset; offset breaks under concurrent writes; page-size trade-offs |
-| implement | Price aside being built | **"Do prices need to update live? What if they tick every second across 50 assets?"** | Asks about the requirement first; polling vs SSE vs websocket; server-rendered first paint + client island for updates |
-| verbal | Price aside is client-rendered | "Lighthouse flags the aside as LCP. Fix?" | SSR the initial values, hydrate live updates after; defer non-critical script |
+| verbal | Article list fetch works | "This is fine at 10 articles. What changes at 1 million?" (pagination is not built) | Pagination; cursor vs offset; offset breaks under concurrent writes; page-size trade-offs |
+| verbal (build as extra if time) | Price aside being built | **"Do prices need to update live? What if they tick every second across 50 assets?"** | Asks about the requirement first; polling vs SSE vs websocket; server-rendered first paint + client island for updates |
+| verbal | Price aside is (or would be) client-rendered | "Lighthouse flags the aside as LCP. Fix?" | SSR the initial values, hydrate live updates after; defer non-critical script |
 | verbal | Aside appears on both pages | "Same aside on list and article, how is it structured?" | Extracts one shared component + one shared fetch; no duplicated markup or fetch between layouts |
 | verbal | Prices render | "Check a rendered price against the raw API value." | Renders the API's `decimals` precision (`Intl.NumberFormat`/`toFixed`), never the raw string; doesn't invent 2dp for everything |
 | implement | Article page renders the HTML body | **"The body is HTML from the CMS. How do you render it safely?"** | Names the XSS risk unprompted; knows `dangerouslySetInnerHTML` is the risk; sanitize with an allowlist (DOMPurify) or render server-side with a trusted pipeline; bonus: "who controls the CMS?" is part of the answer |
@@ -257,13 +259,18 @@ Asked unprompted: ☐ price update frequency ☐ how many articles ☐ error han
 
 ☐ Embargoed article ☐ AI's client-side gate ☐ HTML body sanitized before render ☐ prices rendered at declared `decimals` precision ☐ aside extracted as shared component, not duplicated
 
-### Lean variant (default, target 45-60 min of building in session 1)
+### Lean variant (default, target ~40 min of building in session 1)
 
 Each cut removes pixels or boilerplate, never decisions or discussion:
 
 - Layout is given in the brief ("don't polish"); CSS time not scored.
 - Price aside = plain text list or table; its signal lives in the fetch discussion, not the visuals.
-- Article detail page only needs to exist, rough; enough to anchor the sanitize and cache questions.
+- Article detail page only needs to exist, rough; enough to anchor the sanitize and cache questions. Next's default 404 is fine; a custom `not-found.tsx` is an extra.
+- Plain `<img>` is fine. `next/image` (resizing, formats, layout shift, `remotePatterns`) is an extra or a question.
+- Live price updates are **verbal** by default ("load once is fine for now"); polling, e.g. TanStack Query's `refetchInterval`, is an extra if time allows. The "do prices need to be live?" question is still always asked.
+- Pagination is **verbal**: the list is a fixed "latest" block. Paging belongs to archives and category pages.
+- Dates: any readable format.
+- Types are copyable from the API docs page.
 - Error handling (`?fail=1`) is **verbal**. Trigger `?latency=` live (loading states stay `implement`), ask "and on a 500?" aloud.
 - A/B-test question is the first cut under time pressure; the category-filter filler is bonus-only (`/api/categories` is discussion only).
 
@@ -278,7 +285,7 @@ Never cut, even under time pressure: the vague brief (questions-asked rubric cos
 ## 5. Interviewer operating notes
 
 - **Nudges are free and noted, never deducted.** A few nudges are fine, introverts included. The limit is total freeze: end the build early and move to discussion rather than leave someone distressed.
-- **Run the full 45-60 min of building no matter what** unless that freeze happens.
+- **Hard stop at ~40 min of building**, whatever state it's in; the rest is discussion and getting to know each other. End sooner if the candidate is struggling badly.
 - **Early finisher?** Bonus filler: *"Add a category filter. State lives in the URL."* `/api/categories` is not built: filter client-side against the main endpoint, or discuss how they would add the endpoint. Either way it raises query-param state and server vs client filtering.
 - **Trigger failure modes live:** partway through session 1, ask them to hit the API with `?latency=3000` if no loading state has appeared. Error handling is a **verbal** question ("and on a 500?"); don't spend build time on it. Never grade states you didn't give them the chance to see.
 - **Session 2 fraud filter** is one question: "walk me through the final code." Anyone can generate; the hire signal is comprehension.

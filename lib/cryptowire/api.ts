@@ -1,3 +1,5 @@
+import type { Article } from "./types";
+
 const headers = {
   "Access-Control-Allow-Origin": "*",
   "Cache-Control": "no-store",
@@ -16,4 +18,22 @@ export async function debugResponse(params: URLSearchParams) {
   if (params.get("fail") === "1")
     return json({ error: "Simulated API failure" }, 500);
   return null;
+}
+
+// Fixtures store site-relative image paths; responses carry absolute URLs
+// on the origin that served the request, so clients need no URL joining.
+export function withAbsoluteUrls<T extends Partial<Article>>(
+  article: T,
+  requestUrl: string,
+): T {
+  const origin = new URL(requestUrl).origin;
+  return {
+    ...article,
+    ...(article.image && {
+      image: { ...article.image, url: origin + article.image.url },
+    }),
+    ...(article.body && {
+      body: article.body.replaceAll('src="/', `src="${origin}/`),
+    }),
+  };
 }

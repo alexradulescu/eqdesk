@@ -1,4 +1,4 @@
-import { debugResponse, json } from "@/lib/cryptowire/api";
+import { debugResponse, json, withAbsoluteUrls } from "@/lib/cryptowire/api";
 import { articles } from "@/lib/cryptowire/articles";
 
 export async function GET(request: Request) {
@@ -22,6 +22,8 @@ export async function GET(request: Request) {
   return json(
     articles
       .slice(offset, offset + limit)
-      .map(({ body: _body, ...article }) => article),
+      .map(({ body: _body, ...article }) =>
+        withAbsoluteUrls(article, request.url),
+      ),
   );
 }

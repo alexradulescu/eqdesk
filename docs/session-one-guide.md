@@ -2,46 +2,46 @@
 
 A fresh Next.js 16 (App Router) project, built the shortest readable way. CSS is left out: every element has a plain `className` for you to style. Every snippet below was built and run against the mock API (Next 16.3.6, React 19.2, bun).
 
+- Steps 13–15 are **talk only**: the interviewer asks, nothing is built.
+- Step 11 and the **Extras** at the end are for candidates with time left.
+- The build stops at ~40 minutes whatever state it's in; the rest is discussion.
+
 **Finished file tree**
 
 ```text
 app/
-  layout.tsx            header + two columns + price aside (shared by every page)
-  page.tsx              article list + pagination
-  loading.tsx           loading state
-  error.tsx             error state
-  not-found.tsx         404
+  layout.tsx              header + two columns + price aside (shared by every page)
+  page.tsx                article list
+  loading.tsx             loading state
   articles/[id]/page.tsx  article page
 components/
-  meta.tsx              "category · date" line (list + article)
-  article-body.tsx      sanitized HTML body
-  price-aside.tsx       server: first fetch of prices
-  prices.tsx            client: formatting + polling
-lib/api.ts              types + fetch helper
-next.config.ts          allowed image host
-.env.local              API_URL
+  meta.tsx                "category · date" line (list + article)
+  article-body.tsx        sanitized HTML body
+  price-aside.tsx         prices, rendered on the server
+lib/api.ts                types (copied from the API docs) + fetch helper
+.env.local                API_URL
 ```
 
 | # | Step | Time |
 |---|---|---|
 | 1 | Create the project | 3 min |
-| 2 | Env var and API helper | 5 min |
+| 2 | Env var, types and API helper | 4 min |
 | 3 | Root layout: header + two columns | 4 min |
-| 4 | Article list | 6 min |
-| 5 | Thumbnails and `image: null` | 4 min |
+| 4 | Article list | 5 min |
+| 5 | Thumbnails and `image: null` | 2 min |
 | 6 | Only published articles | 2 min |
-| 7 | Article page and 404 | 7 min |
+| 7 | Article page and 404 | 5 min |
 | 8 | Render the HTML body safely | 5 min |
 | 9 | Price aside, server-rendered | 4 min |
 | 10 | Price formatting | 3 min |
-| 11 | Live prices (client polling) | 6 min |
+| 11 | Live prices | talk, or build if time |
 | 12 | Loading states | 3 min |
-| 13 | Error states | 4 min |
-| 14 | Pagination | 4 min |
+| 13 | Error states | talk |
+| 14 | Pagination | talk |
 | 15 | Caching and "an editor fixes a typo" | talk |
-| 16 | Final check | 3 min |
+| 16 | Final check | 2 min |
 
-Roughly 60 minutes of typing if nothing goes wrong.
+About 40 minutes of typing if nothing goes wrong.
 
 ---
 
@@ -54,12 +54,12 @@ bun add sanitize-html && bun add -d @types/sanitize-html
 bun dev
 ```
 
-- `--yes` takes the defaults: TypeScript, App Router, Turbopack, ESLint, `@/*` alias. `--empty` gives a one-line `page.tsx` instead of the demo page.
+- `--yes` takes the defaults: TypeScript, App Router, Turbopack, ESLint, `@/*` alias. `--empty` gives a one-line `page.tsx` instead of the demo page. Candidates who like Tailwind can drop `--no-tailwind`.
 - It also writes `AGENTS.md` / `CLAUDE.md` for coding agents. Harmless.
 - Cache Components (`cacheComponents` in `next.config.ts`) is **off** by default. Keep it off for this session; step 15 explains what it changes.
 - What's new since older Next: the `app/` folder is the router. A folder is a URL segment, `page.tsx` makes it a route, `layout.tsx` wraps it. Components are **Server Components** by default: they can be `async` and `await fetch` directly. Only files that start with `"use client"` run in the browser.
 
-## 2. Env var and API helper
+## 2. Env var, types and API helper
 
 `.env.local`
 
@@ -70,22 +70,25 @@ API_URL=https://<the-mock-api>.vercel.app
 `lib/api.ts`
 
 ```ts
+// Types copied from the API docs page.
 export type ArticleSummary = {
   id: string;
   title: string;
   category: string;
-  publishedAt: string;
+  publishedAt: string; // ISO 8601, UTC
   image: { url: string; alt: string } | null;
 };
 
-export type Article = ArticleSummary & { body: string };
+export type Article = ArticleSummary & {
+  body: string; // HTML
+};
 
 export type Price = {
   symbol: string;
   name: string;
-  price: string;
-  decimals: number;
-  change24h: string;
+  price: string; // full precision
+  decimals: number; // digits to display
+  change24h: string; // percent
 };
 
 export const API_URL = process.env.API_URL;
@@ -100,14 +103,12 @@ export async function api<T>(path: string): Promise<T | null> {
 
 export const isPublished = (a: { publishedAt: string }) =>
   new Date(a.publishedAt).getTime() <= Date.now();
-
-export const imageUrl = (url: string) => `${API_URL}${url}`;
 ```
 
-- `API_URL` has no `NEXT_PUBLIC_` prefix, so it only exists on the server. The browser gets the URL later as a prop (step 11).
+- The types are copied from the "TypeScript types" section of the API docs page.
+- `API_URL` has no `NEXT_PUBLIC_` prefix, so it only exists on the server.
 - `cache: "no-store"`: without Cache Components, a `fetch` with no option that runs before any request-time API (`searchParams`, `cookies()`…) can be cached forever at build time. Being explicit avoids that surprise.
-- One helper, one place for error handling: `null` means 404, anything else non-OK throws (caught by `error.tsx` in step 13).
-- Image URLs from the API are relative (`/images/…`), so they need the API origin in front.
+- One helper, one place for error handling: `null` means 404, anything else non-OK throws (step 13).
 
 ## 3. Root layout: header + two columns
 
@@ -151,28 +152,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 
 ## 4. Article list
 
-Start with titles only, then fill in the rest in steps 5, 6 and 14. The finished file:
-
 `app/page.tsx`
 
 ```tsx
-import Image from "next/image";
 import Link from "next/link";
 import { Meta } from "@/components/meta";
-import { type ArticleSummary, api, imageUrl, isPublished } from "@/lib/api";
+import { type ArticleSummary, api, isPublished } from "@/lib/api";
 
-const PAGE_SIZE = 6;
-
-export default async function Home({ searchParams }: PageProps<"/">) {
-  const { page: raw } = await searchParams;
-  const page = Math.max(1, Number(raw) || 1);
-
-  // Ask for one extra row: if it comes back, there is a next page.
-  const rows = await api<ArticleSummary[]>(
-    `/articles?limit=${PAGE_SIZE + 1}&offset=${(page - 1) * PAGE_SIZE}`,
-  );
-  const hasNext = (rows?.length ?? 0) > PAGE_SIZE;
-  const articles = (rows ?? []).slice(0, PAGE_SIZE).filter(isPublished);
+export default async function Home() {
+  const rows = await api<ArticleSummary[]>("/articles?limit=10");
+  const articles = (rows ?? []).filter(isPublished);
 
   return (
     <>
@@ -183,12 +172,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           <li key={a.id}>
             <Link href={`/articles/${a.id}`} className="row">
               {a.image ? (
-                <Image
-                  src={imageUrl(a.image.url)}
-                  alt=""
-                  width={120}
-                  height={80}
-                />
+                <img src={a.image.url} alt="" width={120} height={80} />
               ) : (
                 <div className="thumb-placeholder" />
               )}
@@ -200,20 +184,16 @@ export default async function Home({ searchParams }: PageProps<"/">) {
           </li>
         ))}
       </ul>
-      <nav className="pager">
-        {page > 1 && <Link href={`/?page=${page - 1}`}>← Newer</Link>}
-        {hasNext && <Link href={`/?page=${page + 1}`}>Older →</Link>}
-      </nav>
     </>
   );
 }
 ```
 
 - An `async` Server Component: `await` the data, return JSX. No `useEffect`, no loading flags.
-- `searchParams` is a **Promise** in Next 15+, so it is awaited.
+- `limit=10` is a fixed "latest" block; more lists belong elsewhere on the site (step 14).
 - `<Link>` is Next's client-side navigation; it also prefetches.
 
-`components/meta.tsx`, used by the list and the article page:
+`components/meta.tsx`
 
 ```tsx
 export function Meta({
@@ -223,49 +203,29 @@ export function Meta({
   category: string;
   publishedAt: string;
 }) {
-  const date = new Date(publishedAt).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  });
   return (
     <p className="meta">
-      {category} · <time dateTime={publishedAt}>{date}</time>
+      {category} · {new Date(publishedAt).toDateString()}
     </p>
   );
 }
 ```
 
-- `timeZone: "UTC"` keeps the date the same on any server.
+- Any readable date is fine; formatting isn't what's being assessed. `toDateString()` gives `Sat Sep 05 2026`.
 
 ## 5. Thumbnails and `image: null`
 
-In step 4's code: `a.image ? <Image …/> : <div className="thumb-placeholder" />`.
+In step 4's code: `a.image ? <img …/> : <div className="thumb-placeholder" />`.
 
-`next.config.ts`
-
-```ts
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  images: {
-    remotePatterns: [new URL(`${process.env.API_URL}/images/**`)],
-  },
-};
-
-export default nextConfig;
-```
-
-- `next/image` optimizes images through the Next server and only accepts remote hosts you allow here. Restart `bun dev` after changing the config.
+- Image URLs from the API are absolute, so they go straight into `src`. No config needed.
+- ESLint warns that `<img>` could be slower than `next/image`. That's expected here; `next/image` is an extra (see the end).
 - Thumbnail `alt=""`: the title next to it already describes the row, so the image is decorative.
-- **Local gotcha:** if `API_URL` is `http://localhost:…`, Next 16 refuses to optimize images from a private IP (SSRF protection) and the image 400s. With a deployed API it just works. Locally, add `dangerouslyAllowLocalIP: true` under `images` or pass `unoptimized` to `<Image>`.
 
 ## 6. Only published articles
 
 In step 4's code: `.filter(isPublished)` (from `lib/api.ts`).
 
-- `isPublished` compares `publishedAt` with now. Filter **after** slicing, so the pagination count stays tied to the API's pages.
+- `isPublished` compares `publishedAt` with now.
 
 ## 7. Article page and 404
 
@@ -274,12 +234,11 @@ In step 4's code: `.filter(isPublished)` (from `lib/api.ts`).
 `app/articles/[id]/page.tsx`
 
 ```tsx
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleBody } from "@/components/article-body";
 import { Meta } from "@/components/meta";
-import { type Article, api, imageUrl, isPublished } from "@/lib/api";
+import { type Article, api, isPublished } from "@/lib/api";
 
 export default async function ArticlePage({
   params,
@@ -293,41 +252,17 @@ export default async function ArticlePage({
       <Link href="/">← Back to latest</Link>
       <h1>{article.title}</h1>
       <Meta category={article.category} publishedAt={article.publishedAt} />
-      {article.image && (
-        <Image
-          src={imageUrl(article.image.url)}
-          alt={article.image.alt}
-          width={1200}
-          height={675}
-          preload
-        />
-      )}
+      {article.image && <img src={article.image.url} alt={article.image.alt} />}
       <ArticleBody html={article.body} />
     </article>
   );
 }
 ```
 
-- `params` is a Promise too.
+- `params` is a **Promise** in Next 15+, so it is awaited. Same for `searchParams`.
 - `encodeURIComponent(id)`: the id comes from the URL, so don't paste it raw into another URL.
-- `notFound()` throws and renders the nearest `not-found.tsx`. It also covers a future-dated article opened by URL, not only via the list.
-- `preload` on the hero image (Next 16's replacement for the old `priority` prop) because it's the page's largest image.
+- `notFound()` throws and shows Next's default 404 page. It also covers a future-dated article opened by URL, not only via the list. A custom `not-found.tsx` is an extra.
 - If the page streams (a `loading.tsx` is present), the 404 page is sent with status 200 plus a `noindex` tag. That's Next's documented behavior, not a bug in your code.
-
-`app/not-found.tsx`
-
-```tsx
-import Link from "next/link";
-
-export default function NotFound() {
-  return (
-    <div>
-      <h1>Story not found</h1>
-      <Link href="/">← Back to latest</Link>
-    </div>
-  );
-}
-```
 
 ## 8. Render the HTML body safely
 
@@ -362,6 +297,65 @@ export function ArticleBody({ html }: { html: string }) {
 `components/price-aside.tsx`
 
 ```tsx
+import { type Price, api } from "@/lib/api";
+
+const format = (p: Price) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: p.decimals,
+    maximumFractionDigits: p.decimals,
+  }).format(Number(p.price));
+
+// Server component: prices are in the first HTML, no client JS.
+export async function PriceAside() {
+  const prices = await api<Price[]>("/prices").catch(() => null);
+  if (!prices) return <p className="error">Prices unavailable.</p>;
+
+  return (
+    <ul className="prices">
+      {prices.map((p) => {
+        const up = Number(p.change24h) >= 0;
+        return (
+          <li key={p.symbol}>
+            <strong>{p.symbol}</strong> {format(p)}{" "}
+            <span className={up ? "up" : "down"}>
+              {up ? "▲ +" : "▼ "}
+              {p.change24h}%
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+```
+
+- An async Server Component: prices are in the initial HTML (no empty aside, good for LCP) and no JavaScript ships for it.
+- `.catch(() => null)`: a price outage must not take the whole page down. The aside shows its own message instead.
+- Now un-comment `<PriceAside />` in the layout.
+
+## 10. Price formatting
+
+The `format` function in step 9.
+
+- `price` is a string with full precision; `decimals` says how many digits to show. `Intl.NumberFormat` adds the `$`, thousands separators and rounding.
+- `change24h` is a string too; `Number()` it before comparing with 0.
+
+## 11. Live prices (talk, or build if time)
+
+The bold question: "Do prices need to update live? What if they tick every second across 50 assets?"
+
+- Ask about the requirement first. For the build, "load once" is fine.
+- Options: polling (a `setInterval`, or TanStack Query's `refetchInterval`), server-sent events, WebSockets. Polling is fine for 6 assets; a stream is the "every second, 50 assets" answer.
+- Structure: keep the server fetch for the first paint, then hand the prices to a small `"use client"` component that updates them. Its props must be plain data, so the API URL is passed as a string.
+- Failure: keep showing the last known prices with a message rather than blanking the aside.
+
+If there's time to build it, `components/price-aside.tsx` becomes a thin server wrapper:
+
+`components/price-aside.tsx`
+
+```tsx
 import { API_URL, type Price, api } from "@/lib/api";
 import { Prices } from "./prices";
 
@@ -371,29 +365,6 @@ export async function PriceAside() {
   return <Prices initial={prices ?? []} url={`${API_URL}/api/prices`} />;
 }
 ```
-
-- A server component does the first fetch, so prices are in the initial HTML (no empty aside, good for LCP), then hands them to a client component.
-- `.catch(() => null)`: a price outage must not take the whole page down. The aside shows its own error instead (step 11).
-- Now un-comment `<PriceAside />` in the layout.
-
-## 10. Price formatting
-
-In `components/prices.tsx` (full file in step 11):
-
-```tsx
-const format = (p: Price) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: p.decimals,
-    maximumFractionDigits: p.decimals,
-  }).format(Number(p.price));
-```
-
-- `price` is a string with full precision; `decimals` says how many digits to show. `Intl.NumberFormat` adds the `$`, thousands separators and rounding.
-- `change24h` is a string too; `Number()` it before comparing with 0.
-
-## 11. Live prices (client polling)
 
 `components/prices.tsx`
 
@@ -451,10 +422,8 @@ export function Prices({ initial, url }: { initial: Price[]; url: string }) {
 }
 ```
 
-- `"use client"` makes this a Client Component: it can use state and effects. Its props must be serializable (plain data, no functions), which is why the URL is passed as a string.
-- Polling every 5 s with `setInterval` in `useEffect`, cleaned up on unmount. Simple and enough for 6 assets; SSE or WebSockets are the "every second, 50 assets" answer.
-- On failure it keeps the last prices and shows a message instead of blanking the aside.
 - The API sends `Access-Control-Allow-Origin: *`, so the browser can call it directly.
+- With TanStack Query: `useQuery({ queryKey: ["prices"], queryFn, initialData: initial, refetchInterval: 5000 })` replaces the `useEffect`, and needs a `QueryClientProvider` in a client component around the app.
 
 ## 12. Loading states
 
@@ -468,45 +437,31 @@ export default function Loading() {
 
 - `loading.tsx` wraps the page in a Suspense boundary automatically: the layout (header + aside) shows immediately and this replaces the page until its data arrives.
 - The aside already has its own `<Suspense fallback>` from step 3.
-- Test: temporarily add `?latency=3000` to the fetch URL in `lib/api.ts` (or to the articles call only).
+- Test: temporarily add `?latency=3000` to the articles fetch.
 
-## 13. Error states
+## 13. Error states (talk)
 
-`app/error.tsx`
+"And on a 500?" (`?fail=1`). What a good answer covers:
 
-```tsx
-"use client";
+- `app/error.tsx`: an error boundary for the page. It must be a Client Component (`"use client"`), keeps the layout around it, and gets a **`retry`** prop to try again (Next 16.3 name; older material says `reset`). `api()` already throws on a 500, so the boundary would catch it.
+- Prices fail separately: the aside shows its own message, so the page keeps working.
+- `global-error.tsx` for errors in the root layout itself.
 
-export default function ErrorPage({ retry }: { retry: () => void }) {
-  return (
-    <div>
-      <h1>Couldn’t load the news</h1>
-      <button type="button" onClick={() => retry()}>
-        Try again
-      </button>
-    </div>
-  );
-}
-```
+## 14. Pagination (talk)
 
-- `error.tsx` must be a Client Component. It catches errors thrown while rendering the page (our `api()` throws on 500) and keeps the layout around it.
-- Next 16.3 names the prop **`retry`** (older docs and tutorials say `reset`).
-- Test: temporarily add `?fail=1` to the articles fetch. For prices, add it to the polling URL and the aside shows its message while the page keeps working.
+"This is fine at 10 articles. What changes at 1 million?"
 
-## 14. Pagination
+- "Latest" is a fixed block of N; archives, category pages and search are where paging lives.
+- Page state in the URL (`?page=` or `?cursor=`, read from `searchParams`) so it's shareable and the back button works.
+- Offset vs cursor: offset is simple but shifts when new articles are published while someone is paging; a cursor (the last `publishedAt` + id) is stable and cheaper for the database.
+- Fetch `limit + 1` to know if there's a next page without a count query.
 
-Already in step 4's code:
+## 15. Caching and "an editor fixes a typo" (talk)
 
-- `?page=N` in the URL, read from `searchParams`. The URL is the state, so pages are shareable and the back button works.
-- Ask for `PAGE_SIZE + 1` rows: if the extra one comes back, show "Older →". No count endpoint needed.
-- `Math.max(1, Number(raw) || 1)` turns `?page=abc` or `?page=-3` into page 1.
-
-## 15. Caching and "an editor fixes a typo"
-
-Nothing to build; this is the discussion step. What the code does now: every request fetches fresh (`no-store`, pages marked `ƒ Dynamic` in `bun run build`).
+What the code does now: every request fetches fresh (`no-store`, pages marked `ƒ Dynamic` in `bun run build`).
 
 - **Time-based:** `fetch(url, { next: { revalidate: 60 } })` serves a cached copy and refreshes it in the background at most once a minute. A typo fix is live within ~60 s.
-- **On demand:** `fetch(url, { next: { tags: ["article-" + id] } })`, then a route handler called by a CMS webhook runs `revalidateTag("article-" + id)`. The fix is live on the next request.
+- **On demand:** `fetch(url, { next: { tags: ["article-" + id] } })`, then a route handler called by a CMS webhook runs `revalidateTag("article-" + id, "max")` (Next 16 wants the second argument: `"max"` serves the old copy once while refetching, `{ expire: 0 }` makes the next request wait for fresh data).
 - **Pre-render articles:** `generateStaticParams()` in `articles/[id]/page.tsx` builds known ids at build time; unknown ones render on first request.
 - **Cache Components (Next 16's new model, `cacheComponents: true`):** caching becomes opt-in with a `"use cache"` directive plus `cacheLife()` / `cacheTag()`, and uncached data must sit inside `<Suspense>`. A static shell (header, layout) is served instantly and the dynamic parts stream in.
 
@@ -517,4 +472,46 @@ bun run build   # type-checks and shows each route as static (○) or dynamic (�
 bun start
 ```
 
-Click through: list → article → back, page 2, an unknown id (`/articles/nope`), and watch the prices change every 5 s.
+Click through: list → article → back, and an unknown id (`/articles/nope`).
+
+---
+
+## Extras (if time, or as questions)
+
+**Custom 404.** `notFound()` renders the nearest `not-found.tsx`:
+
+`app/not-found.tsx`
+
+```tsx
+import Link from "next/link";
+
+export default function NotFound() {
+  return (
+    <div>
+      <h1>Story not found</h1>
+      <Link href="/">← Back to latest</Link>
+    </div>
+  );
+}
+```
+
+**`next/image` instead of `<img>`.** It resizes images per screen width, converts to WebP/AVIF, lazy-loads by default and prevents layout shift (it requires `width`/`height`). The cost: config, and resizing runs on your server or Vercel.
+
+```tsx
+import Image from "next/image";
+
+<Image src={article.image.url} alt={article.image.alt} width={1200} height={675} preload />
+```
+
+```ts
+// next.config.ts
+images: {
+  remotePatterns: [new URL(`${process.env.API_URL}/images/**`)],
+  // Only while API_URL is localhost: Next 16 refuses private IPs by default.
+  dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
+},
+```
+
+- `preload` is Next 16's replacement for the old `priority` prop; use it on the page's main image.
+- Restart `bun dev` after changing `next.config.ts`.
+- When the CMS or an image CDN already resizes images, pass `<Image>` a custom `loader` that builds the CDN's URL, or use `<img>` with the CDN's `srcset`.

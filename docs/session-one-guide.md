@@ -2,8 +2,8 @@
 
 A fresh Next.js 16 (App Router) project, built the shortest readable way. CSS is left out: every element has a plain `className` for you to style. Every snippet below was built and run against the mock API (Next 16.3.6, React 19.2, bun).
 
-- Steps 13–15 are **talk only**: the interviewer asks, nothing is built.
-- Step 11 and the **Extras** at the end are for candidates with time left.
+- Steps 1–11 are the build.
+- Everything after step 11 is **extras and questions**: built only if time is left, otherwise asked and discussed.
 - The build stops at ~40 minutes whatever state it's in; the rest is discussion.
 
 **Finished file tree**
@@ -12,12 +12,12 @@ A fresh Next.js 16 (App Router) project, built the shortest readable way. CSS is
 app/
   layout.tsx              header + two columns + price aside (shared by every page)
   page.tsx                article list
-  loading.tsx             loading state
   articles/[id]/page.tsx  article page
 components/
   meta.tsx                "category · date" line (list + article)
   article-body.tsx        sanitized HTML body
-  price-aside.tsx         prices, rendered on the server
+  price-aside.tsx         server: first fetch of prices
+  prices.tsx              client: live prices
 lib/api.ts                types (copied from the API docs) + fetch helper
 .env.local                API_URL
 ```
@@ -34,14 +34,20 @@ lib/api.ts                types (copied from the API docs) + fetch helper
 | 8 | Render the HTML body safely | 5 min |
 | 9 | Price aside, server-rendered | 4 min |
 | 10 | Price formatting | 3 min |
-| 11 | Live prices | talk, or build if time |
-| 12 | Loading states | 3 min |
+| 11 | Live prices | 6 min |
+
+About 43 minutes of typing if nothing goes wrong.
+
+**Extras and questions** (after step 11)
+
+| # | Topic | Mode |
+|---|---|---|
+| 12 | Loading states | build if time (3 min), or ask |
 | 13 | Error states | talk |
 | 14 | Pagination | talk |
 | 15 | Caching and "an editor fixes a typo" | talk |
-| 16 | Final check | 2 min |
-
-About 40 minutes of typing if nothing goes wrong.
+| 16 | Final check | build if time (2 min) |
+| — | Custom 404, `next/image` | build if time, or ask |
 
 ---
 
@@ -342,16 +348,16 @@ The `format` function in step 9.
 - `price` is a string with full precision; `decimals` says how many digits to show. `Intl.NumberFormat` adds the `$`, thousands separators and rounding.
 - `change24h` is a string too; `Number()` it before comparing with 0.
 
-## 11. Live prices (talk, or build if time)
+## 11. Live prices
 
 The bold question: "Do prices need to update live? What if they tick every second across 50 assets?"
 
-- Ask about the requirement first. For the build, "load once" is fine.
+- Ask about the requirement first. Polling every 5 s is the build answer.
 - Options: polling (a `setInterval`, or TanStack Query's `refetchInterval`), server-sent events, WebSockets. Polling is fine for 6 assets; a stream is the "every second, 50 assets" answer.
 - Structure: keep the server fetch for the first paint, then hand the prices to a small `"use client"` component that updates them. Its props must be plain data, so the API URL is passed as a string.
 - Failure: keep showing the last known prices with a message rather than blanking the aside.
 
-If there's time to build it, `components/price-aside.tsx` becomes a thin server wrapper:
+`components/price-aside.tsx` from step 9 becomes a thin server wrapper:
 
 `components/price-aside.tsx`
 
@@ -425,7 +431,13 @@ export function Prices({ initial, url }: { initial: Price[]; url: string }) {
 - The API sends `Access-Control-Allow-Origin: *`, so the browser can call it directly.
 - With TanStack Query: `useQuery({ queryKey: ["prices"], queryFn, initialData: initial, refetchInterval: 5000 })` replaces the `useEffect`, and needs a `QueryClientProvider` in a client component around the app.
 
-## 12. Loading states
+---
+
+# Extras and questions
+
+The build ends at step 11. Build these only if time is left; otherwise the interviewer asks and the candidate talks it through.
+
+## 12. Loading states (build if time, or ask)
 
 `app/loading.tsx`
 
@@ -465,7 +477,7 @@ What the code does now: every request fetches fresh (`no-store`, pages marked `�
 - **Pre-render articles:** `generateStaticParams()` in `articles/[id]/page.tsx` builds known ids at build time; unknown ones render on first request.
 - **Cache Components (Next 16's new model, `cacheComponents: true`):** caching becomes opt-in with a `"use cache"` directive plus `cacheLife()` / `cacheTag()`, and uncached data must sit inside `<Suspense>`. A static shell (header, layout) is served instantly and the dynamic parts stream in.
 
-## 16. Final check
+## 16. Final check (build if time)
 
 ```sh
 bun run build   # type-checks and shows each route as static (○) or dynamic (ƒ)
@@ -474,9 +486,7 @@ bun start
 
 Click through: list → article → back, and an unknown id (`/articles/nope`).
 
----
-
-## Extras (if time, or as questions)
+## More extras
 
 **Custom 404.** `notFound()` renders the nearest `not-found.tsx`:
 

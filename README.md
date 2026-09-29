@@ -80,7 +80,7 @@ This is a local exercise implementation. Public hosting, hosted rate limiting, a
 
 ## Rebuild it yourself
 
-[Start the guided Phase 1 walkthrough](docs/phase-one-walkthrough/README.md). There are 17 small slices, each with a visual, code to type, a browser check, and a pause for review. The practice app belongs in a separate folder on port 3001; this repo supplies the API on port 3000. The practice app has not been created for you.
+Follow the [Session 1 guide](docs/session-one-guide.md): 11 build steps, then extras and questions. The practice app belongs in a separate folder on port 3001; this repo supplies the API on port 3000. The practice app has not been created for you.
 
 ## Verify
 

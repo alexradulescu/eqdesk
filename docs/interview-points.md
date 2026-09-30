@@ -2,7 +2,7 @@
 
 > **Interviewer only. Never share with candidates.**
 
-What candidates get: `docs/candidate-brief.md` (session 1), `docs/candidate-brief-part-2.md` (session 2) and the public API docs at the API root. The full build is in `docs/session-one-guide.md`. This file holds the checkpoints to watch and the questions to ask.
+What candidates get: `docs/candidate-brief.md` (all three parts) and the public API docs at the API root. The full build is in `docs/session-one-guide.md`. This file holds the checkpoints to watch and the questions to ask.
 
 **Format:** two sessions, one sitting or two calls.
 
@@ -68,7 +68,7 @@ Asked as the code appears. **Bold = never cut.** Cut from the bottom under time 
 
 ## Session 2: checkpoints
 
-The page states (wireframes in the part 2 brief): A, anonymous with free articles left (meter, full body); B, anonymous with none left (banner, no body); C, logged in (no meter, [Logout]). The homepage doesn't change.
+The page states (wireframes in part 3 of the brief): A, anonymous with free articles left (meter, full body); B, anonymous with none left (banner, no body); C, logged in (no meter, [Logout]). The homepage doesn't change.
 
 - **Meter:** one conditional component, or logic spread through the page?
 - **Session:** the fake login is modelled as a cookie, not a boolean in React state.

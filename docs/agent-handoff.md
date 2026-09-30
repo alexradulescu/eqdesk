@@ -12,7 +12,7 @@ Read this whole file first, then `docs/session-one-guide.md`.
 - **Repo:** `alexradulescu/eqdesk`, a Next.js 16 app with two parts:
   1. **The mock API** the candidate builds against: `app/api/articles`, `app/api/articles/[id]`, `app/api/prices`, with fixtures in `lib/cryptowire/` and public API docs at `/` (`app/page.tsx`).
   2. **Alex's reference implementation** at `/alex` (`app/alex/*`, `components/*`).
-- **Interviewer notes:** `docs/interview-points.md`. Checkpoints, questions and rubric for both sessions. Candidates never see it; their material is `docs/candidate-brief.md` and `docs/candidate-brief-part-2.md`.
+- **Interviewer notes:** `docs/interview-points.md`. Checkpoints, questions and rubric for both sessions. Candidates never see it; their material is `docs/candidate-brief.md`.
 - **Scope now:** Session 1 only (the manual build). Session 2 (the registration wall with AI) comes later.
 - **The rehearsal setup:** a fresh `bun create next-app` project, TypeScript, no Tailwind. Alex styles with next-yak (CSS-in-JS), so ignore CSS entirely; the guide uses plain `className`s. The mock API URL comes from the `API_URL` env var, which Alex will fill in. They type everything by hand in VS Code (with autocomplete), with a terminal and a browser on the side.
 - **The guide:** `docs/session-one-guide.md`, 16 numbered steps, about 40 minutes of building with a hard stop. Steps 13–15 are talk only (errors, pagination, caching); step 11 (live prices) and the Extras (custom 404, `next/image`) are built only if time allows. It uses a plain `<img>` and a server-only price aside.
